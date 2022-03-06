@@ -5,22 +5,25 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"path/filepath"
-	. "piefs/core"
+	. "piefs/storage/needle"
+	. "piefs/storage/volume"
 )
 
 type LeveldbDirectory struct {
-	db   *leveldb.DB
-	path string // leveldb 文件存放路径
+	db        *leveldb.DB
+	path      string // leveldb 文件存放路径
+	volumeMap map[uint64]*Volume
 	//iter iterator.Iterator
 }
 
 func NewLeveldbDirectory(dir string) (d *LeveldbDirectory, err error) {
 	d = new(LeveldbDirectory)
-	d.path = filepath.Join(dir, "index") // TODO all volumes in one directory. Future: one volume one directory
+	d.path = filepath.Join(dir, "index") //all volumes in one directory.
 	d.db, err = leveldb.OpenFile(d.path, nil)
 	if err != nil {
 		return nil, err
 	}
+	//TODO 根据leveldb建立volume map
 	//d.iter = d.db.NewIterator(nil,nil)
 	return
 }

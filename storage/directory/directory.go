@@ -1,7 +1,7 @@
 package directory
 
 import (
-	. "piefs/core"
+	. "piefs/storage/needle"
 )
 
 type Directory interface {

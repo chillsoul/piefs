@@ -1,4 +1,4 @@
-package core
+package needle
 
 import (
 	"encoding/binary"
