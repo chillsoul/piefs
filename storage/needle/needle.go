@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var NeedleHeaderSize uint64 = 37 //(64*3 + 32 + 8 + 64) / 8;without file extension,ID 64,Size 64,Offset 64,Checksum 32,bool 8,time 64
+var FixedSize uint64 = 37 //(64*3 + 32 + 8 + 64) / 8;without file extension,ID 64,Size 64,Offset 64,Checksum 32,bool 8,time 64
 var (
 	ErrNilNeedle = errors.New("nil Needle")
 	ErrWrongLen  = errors.New("wrong Needle len")
@@ -24,8 +24,8 @@ type Needle struct {
 	File       *os.File  //volume file; memory only
 }
 
-// NeedleMarshal : Needle struct -> bytes
-func NeedleMarshal(n *Needle) (data []byte, err error) {
+// Marshal : Needle struct -> bytes
+func Marshal(n *Needle) (data []byte, err error) {
 	if n == nil {
 		err = ErrNilNeedle
 		return
@@ -45,9 +45,9 @@ func NeedleMarshal(n *Needle) (data []byte, err error) {
 	return
 }
 
-// NeedleUnmarshal : bytes -> needle struct
-func NeedleUnmarshal(b []byte) (n *Needle, err error) {
-	if len(b) < int(NeedleHeaderSize) {
+// Unmarshal : bytes -> needle struct
+func Unmarshal(b []byte) (n *Needle, err error) {
+	if len(b) < int(FixedSize) {
 		return nil, ErrWrongLen
 	}
 	n = new(Needle)
@@ -65,5 +65,21 @@ func NeedleUnmarshal(b []byte) (n *Needle, err error) {
 	return
 }
 func HeaderSize(extSize uint64) (size uint64) {
-	return extSize + NeedleHeaderSize
+	return extSize + FixedSize
+}
+func (n *Needle) WriteData(b []byte) (num int, err error) {
+	start := n.Offset + FixedSize + uint64(len(n.FileExt))
+	num, err = n.File.WriteAt(b, int64(start))
+	if err != nil {
+		return
+	}
+	return
+}
+func (n *Needle) ReadData(b []byte) (num int, err error) {
+	start := n.Offset + FixedSize + uint64(len(n.FileExt))
+	num, err = n.File.ReadAt(b, int64(start))
+	if err != nil {
+		return
+	}
+	return
 }

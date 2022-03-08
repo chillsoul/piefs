@@ -1,6 +1,7 @@
 package directory
 
 import (
+	"os"
 	"piefs/storage/needle"
 	"reflect"
 	"testing"
@@ -12,6 +13,10 @@ func TestNewLeveldbDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatal("error creat new leveldb directory", err)
 	}
+	defer func() {
+		d.db.Close()
+		os.RemoveAll("./_tmp_leveldb")
+	}()
 	n := &needle.Needle{
 		ID:         202203060001,
 		Size:       6,
@@ -22,11 +27,11 @@ func TestNewLeveldbDirectory(t *testing.T) {
 		UploadTime: time.Now().Round(time.Second), //after marshal, it will be unix timestamp and only second precision
 		File:       nil,
 	}
-	err = d.New(n)
+	err = d.Set(1, n.ID, n)
 	if err != nil {
 		return
 	}
-	nGet, err := d.Get(n.ID)
+	nGet, err := d.Get(1, n.ID)
 	if !reflect.DeepEqual(n, nGet) {
 		t.Fatal("error needle not equal")
 	}

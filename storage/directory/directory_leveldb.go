@@ -33,7 +33,7 @@ func (d *LeveldbDirectory) Get(vid, nid uint64) (n *Needle, err error) {
 	if err != nil {
 		return nil, err
 	}
-	n, err = NeedleUnmarshal(data)
+	n, err = Unmarshal(data)
 
 	return
 }
@@ -50,7 +50,7 @@ func (d *LeveldbDirectory) Set(vid, nid uint64, needle *Needle) (err error) {
 	key := make([]byte, 16)
 	binary.BigEndian.PutUint64(key[:8], vid)
 	binary.BigEndian.PutUint64(key[8:16], nid)
-	data, err := NeedleMarshal(needle)
+	data, err := Marshal(needle)
 	if err != nil {
 		return err
 	}
