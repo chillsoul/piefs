@@ -1,4 +1,13 @@
-[redis]
-url="localhost:6379"
-password=""
-db=0
+
+[master]
+host="localhost"
+port=8080
+[store]
+host="localhost"
+port=9090
+dir="data"
+
+#[redis]
+#url="localhost:6379"
+#password=""
+#db=0
