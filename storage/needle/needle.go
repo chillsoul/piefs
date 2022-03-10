@@ -3,25 +3,28 @@ package needle
 import (
 	"encoding/binary"
 	"errors"
+	"io"
 	"os"
 	"time"
 )
 
 var FixedSize uint64 = 37 //(64*3 + 32 + 8 + 64) / 8;without file extension,ID 64,Size 64,Offset 64,Checksum 32,bool 8,time 64
 var (
-	ErrNilNeedle = errors.New("nil Needle")
-	ErrWrongLen  = errors.New("wrong Needle len")
+	ErrNilNeedle   = errors.New("nil Needle")
+	ErrWrongLen    = errors.New("wrong Needle len")
+	ErrSmallNeedle = errors.New("needle size too small")
 )
 
 type Needle struct {
-	ID         uint64    //unique ID 64bits; stored
-	Size       uint64    //size of body 64bits; stored
-	Offset     uint64    //offset of body 64bits; stored
-	Checksum   uint32    //checksum 32bits; stored
-	IsDeleted  bool      //flag of deleted status; stored
-	FileExt    string    //file extension; stored
-	UploadTime time.Time //upload time; stored
-	File       *os.File  //volume file; memory only
+	ID           uint64    //unique ID 64bits; stored
+	Size         uint64    //size of body 64bits; stored
+	Offset       uint64    //offset of body 64bits; stored
+	Checksum     uint32    //checksum 32bits; stored
+	IsDeleted    bool      //flag of deleted status; stored
+	FileExt      string    //file extension; stored
+	UploadTime   time.Time //upload time; stored
+	File         *os.File  //volume file; memory only
+	currentIndex uint64    //current index for IO read and write
 }
 
 // Marshal : Needle struct -> bytes
@@ -67,19 +70,33 @@ func Unmarshal(b []byte) (n *Needle, err error) {
 func HeaderSize(extSize uint64) (size uint64) {
 	return extSize + FixedSize
 }
-func (n *Needle) WriteData(b []byte) (num int, err error) {
-	start := n.Offset + FixedSize + uint64(len(n.FileExt))
+
+//Write implements Reader interface.
+//ONLY STORE NEW NEEDLE USE THIS FUNCTION
+func (n *Needle) Write(b []byte) (num int, err error) {
+	start := n.Offset + FixedSize + uint64(len(n.FileExt)) + n.currentIndex
+	if len(b) > int(n.Size) {
+		return 0, ErrSmallNeedle
+	}
 	num, err = n.File.WriteAt(b, int64(start))
 	if err != nil {
 		return
 	}
+	n.currentIndex += uint64(num)
 	return
 }
-func (n *Needle) ReadData(b []byte) (num int, err error) {
-	start := n.Offset + FixedSize + uint64(len(n.FileExt))
-	num, err = n.File.ReadAt(b, int64(start))
-	if err != nil {
-		return
+
+//Read implements Reader interface
+func (n *Needle) Read(b []byte) (num int, err error) {
+	start := n.Offset + FixedSize + uint64(len(n.FileExt)) + n.currentIndex
+	remainingBytes := n.Size - n.currentIndex
+	if remainingBytes == 0 {
+		return 0, io.EOF
 	}
+	if len(b) > int(remainingBytes) {
+		b = b[:remainingBytes]
+	}
+	num, err = n.File.ReadAt(b, int64(start))
+	n.currentIndex += uint64(num)
 	return
 }
