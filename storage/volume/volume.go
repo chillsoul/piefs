@@ -36,7 +36,7 @@ func NewVolume(id uint64, dir string) (v *Volume, err error) {
 		dir = DefaultDir
 	}
 	pathMustExists(dir)
-	path := filepath.Join(dir, strconv.FormatUint(id, 10)+".data")
+	path := filepath.Join(dir, strconv.FormatUint(id, 10)+".volume")
 	v = new(Volume)
 	v.ID = id
 	v.Path = dir
@@ -144,8 +144,6 @@ func (v *Volume) NewNeedle(id uint64, fileSize uint64, fileExt string, checksum 
 		return nil, err
 	}
 
-	// 在Directory层增加needle的meta
-	//err = v.Directory.New(n)
 	return n, err
 }
 func (v *Volume) NewFile(id uint64, data []byte, fileExt string) (needle *Needle, err error) {
@@ -155,10 +153,11 @@ func (v *Volume) NewFile(id uint64, data []byte, fileExt string) (needle *Needle
 	if err != nil {
 		return nil, fmt.Errorf("new needle : %v", err)
 	}
-	_, err = needle.WriteData(data)
+	_, err = needle.Write(data)
 	if err != nil {
 		return nil, fmt.Errorf("needle write error %v", err)
 	}
+
 	return needle, nil
 }
 func (v *Volume) GetVolumeSize() uint64 {
