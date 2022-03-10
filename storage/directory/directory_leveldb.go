@@ -4,14 +4,19 @@ import (
 	"encoding/binary"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
+	"io/ioutil"
 	"path/filepath"
-	. "piefs/storage/needle"
+	"piefs/storage/needle"
+	"piefs/storage/volume"
+	"strconv"
+	"strings"
 )
 
 //LeveldbDirectory store<<volume id,needle id>,needle metadata>
 type LeveldbDirectory struct {
-	db   *leveldb.DB
-	path string // leveldb 文件存放路径
+	db        *leveldb.DB
+	path      string // leveldb 文件存放路径
+	volumeMap map[uint64]*volume.Volume
 	//iter iterator.Iterator
 }
 
@@ -22,10 +27,28 @@ func NewLeveldbDirectory(dir string) (d *LeveldbDirectory, err error) {
 	if err != nil {
 		return nil, err
 	}
+	volumeInfos, err := ioutil.ReadDir(dir)
+	if err != nil {
+		panic(err)
+	}
+	d.volumeMap = make(map[uint64]*volume.Volume)
+	for _, volumeFile := range volumeInfos {
+		volumeFileName := volumeFile.Name()
+		if strings.HasSuffix(volumeFileName, ".volume") {
+			volumeId, err := strconv.ParseUint(volumeFileName[:len(volumeFileName)-7], 10, 64) //5:len(".volume")
+			if err != nil {
+				return nil, err
+			}
+			d.volumeMap[volumeId], err = volume.NewVolume(volumeId, dir)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
 	return
 }
 
-func (d *LeveldbDirectory) Get(vid, nid uint64) (n *Needle, err error) {
+func (d *LeveldbDirectory) Get(vid, nid uint64) (n *needle.Needle, err error) {
 	key := make([]byte, 16)
 	binary.BigEndian.PutUint64(key[:8], vid)
 	binary.BigEndian.PutUint64(key[8:16], nid)
@@ -33,7 +56,7 @@ func (d *LeveldbDirectory) Get(vid, nid uint64) (n *Needle, err error) {
 	if err != nil {
 		return nil, err
 	}
-	n, err = Unmarshal(data)
+	n, err = needle.Unmarshal(data)
 
 	return
 }
@@ -46,11 +69,11 @@ func (d *LeveldbDirectory) Has(vid, nid uint64) (has bool) {
 	return err == nil
 }
 
-func (d *LeveldbDirectory) Set(vid, nid uint64, needle *Needle) (err error) {
+func (d *LeveldbDirectory) Set(vid, nid uint64, n *needle.Needle) (err error) {
 	key := make([]byte, 16)
 	binary.BigEndian.PutUint64(key[:8], vid)
 	binary.BigEndian.PutUint64(key[8:16], nid)
-	data, err := Marshal(needle)
+	data, err := needle.Marshal(n)
 	if err != nil {
 		return err
 	}
@@ -70,6 +93,10 @@ func (d *LeveldbDirectory) Iter() (iter Iterator) {
 		iter: it,
 	}
 	return levelIt
+}
+
+func (d *LeveldbDirectory) GetVolumeMap() map[uint64]*volume.Volume {
+	return d.volumeMap
 }
 
 type LeveldbIterator struct {
