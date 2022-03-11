@@ -1,23 +1,75 @@
-## Pie File System
+# Pie File System
+
 A simple file system based on [Facebook Haystack Paper](https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf).
 
+Only for learning, **NOT RECOMMEND** to use for production environment (see [SeaweedFS](https://github.com/chrislusf/seaweedfs) instead).
+
 ---
-###TODO List
-- [ ] File Merge Store
-- [ ] NoSQL Support
-  - [ ] Redis
-- [ ] Distributed Storage
-- [ ] Linux FUSE
+### TODO List
+- [ ] Master
+    - [ ] Web UI
+    - [x] Heartbeat Monitor
+    - HTTP RESTful API
+      - [ ] Get needle physical URL
+      - [ ] Get needle upload URL
+      - [ ] Delete needle
+- Storage
+  - [ ] Cache
+  - [x] Directory
+    - [x] LevelDB store file index
+  - [x] Volume
+  - [x] Needle
+  - [x] Heartbeat
+  - HTTP RESTful API
+    - [ ] Add volume
+    - [x] Get needle
+    - [ ] Put needle
+    - [ ] Delete needle
 ---
 
-###Directory
+## Document
 
-负责逻辑卷到物理卷的映射
+### Directory
 
-### Store
+A directory use Key-Value database (LevelDB now) to store the mapping relationship between volume id,needle id and needle metadata (store <<vid,nid>,n metadata> in short). 
 
-负责存储
+### Volume
 
-### Cache
+Each Volume file's first 8 bytes is its current offset, which means storage server can store data from here.
 
-未命中时再从磁盘调入
+### Needle
+
+```go
+// piefs/storage/needle/needle.go
+type Needle struct {
+	ID           uint64    //unique ID 64bits; stored
+	Size         uint64    //size of body 64bits; stored
+	Offset       uint64    //offset of body 64bits; stored
+	Checksum     uint32    //checksum 32bits; stored
+	IsDeleted    bool      //flag of deleted status; stored
+	FileExt      string    //file extension; stored
+	UploadTime   time.Time //upload time; stored
+	File         *os.File  //volume file; memory only
+	currentIndex uint64    //current index for IO read and write
+}
+```
+
+The fields which be commented with stored means it's a needle's metadata, and these will be stored in physical volume file before needle data as a header.
+
+The `currentIndex` is used for implementing `Reader` and `Writer` interfaces.
+
+## Reference
+
+This repository references many great project or paper (including but not limited to code and design ideas), especially following:
+
+[Facebook Haystack Paper](https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf)
+
+[AlexanderChiuluvB/xiaoyaoFS - Github](https://github.com/AlexanderChiuluvB/xiaoyaoFS)
+
+[chrislusf/seaweedfs - Github](https://github.com/chrislusf/seaweedfs)
+
+[hmli/simplefs - Github](https://github.com/hmli/simplefs)
+
+[030io/whalefs - Github](https://github.com/030io/whalefs)
+
+Really thanks!
