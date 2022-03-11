@@ -6,7 +6,7 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
 
 ---
 ### TODO List
-- [ ] Master
+- Master
     - [ ] Web UI
     - [x] Heartbeat Monitor
     - HTTP RESTful API
@@ -54,7 +54,7 @@ type Needle struct {
 }
 ```
 
-The fields which be commented with stored means it's a needle's metadata, and these will be stored in physical volume file before needle data as a header.
+The fields which be commented with 'stored' means it's a needle's metadata, and these will be stored in physical volume file before needle data as a header.
 
 The `currentIndex` is used for implementing `Reader` and `Writer` interfaces.
 
