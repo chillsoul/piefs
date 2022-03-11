@@ -9,10 +9,10 @@ import (
 	"strconv"
 )
 
-func (s *Store) AddVolume(w http.ResponseWriter, r *http.Request) {
+func (s *Storage) AddVolume(w http.ResponseWriter, r *http.Request) {
 
 }
-func (s *Store) GetNeedle(w http.ResponseWriter, r *http.Request) {
+func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request) {
 	var (
 		err error
 		vid uint64
@@ -48,10 +48,10 @@ func (s *Store) GetNeedle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (s *Store) DelNeedle(w http.ResponseWriter, r *http.Request) {
+func (s *Storage) DelNeedle(w http.ResponseWriter, r *http.Request) {
 
 }
-func (s *Store) PutNeedle(w http.ResponseWriter, r *http.Request) {
+func (s *Storage) PutNeedle(w http.ResponseWriter, r *http.Request) {
 
 }
 func getContentType(fileExt string) string {

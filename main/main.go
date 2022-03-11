@@ -2,29 +2,28 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"os"
+	"github.com/pelletier/go-toml"
+	"piefs/master"
+	"piefs/storage"
 )
 
-func img(w http.ResponseWriter, r *http.Request) {
-	file, err := os.OpenFile("./resources/testfile/gofactory.jpg", os.O_RDONLY, 0777)
-	defer file.Close()
-	if err != nil {
-		fmt.Println("error open file")
-	}
-	buff, err := ioutil.ReadAll(file)
-	if err != nil {
-		fmt.Println("error read file")
-	}
-	w.Write(buff)
-}
-func redirect(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/trueimg", http.StatusFound)
-}
 func main() {
-	http.HandleFunc("/fakeimg", redirect)
-	http.HandleFunc("/trueimg", img)
-	err := http.ListenAndServe(":80", nil)
-	fmt.Println(err)
+	config, err := toml.LoadFile("./config.toml")
+	if err != nil {
+		fmt.Println("error load config:", err)
+		return
+	}
+	s, err := storage.NewStorage(config)
+	if err != nil {
+		fmt.Println("error new storage:", err)
+		return
+	}
+	m, err := master.NewMaster(config)
+	if err != nil {
+		fmt.Println("error new master:", err)
+		return
+	}
+	go s.Start()
+	go m.Start()
+	select {}
 }

@@ -16,7 +16,7 @@ import (
 type LeveldbDirectory struct {
 	db        *leveldb.DB
 	path      string // leveldb 文件存放路径
-	volumeMap map[uint64]*volume.Volume
+	VolumeMap map[uint64]*volume.Volume
 	//iter iterator.Iterator
 }
 
@@ -31,7 +31,7 @@ func NewLeveldbDirectory(dir string) (d *LeveldbDirectory, err error) {
 	if err != nil {
 		panic(err)
 	}
-	d.volumeMap = make(map[uint64]*volume.Volume)
+	d.VolumeMap = make(map[uint64]*volume.Volume)
 	for _, volumeFile := range volumeInfos {
 		volumeFileName := volumeFile.Name()
 		if strings.HasSuffix(volumeFileName, ".volume") {
@@ -39,7 +39,7 @@ func NewLeveldbDirectory(dir string) (d *LeveldbDirectory, err error) {
 			if err != nil {
 				return nil, err
 			}
-			d.volumeMap[volumeId], err = volume.NewVolume(volumeId, dir)
+			d.VolumeMap[volumeId], err = volume.NewVolume(volumeId, dir)
 			if err != nil {
 				return nil, err
 			}
@@ -96,7 +96,7 @@ func (d *LeveldbDirectory) Iter() (iter Iterator) {
 }
 
 func (d *LeveldbDirectory) GetVolumeMap() map[uint64]*volume.Volume {
-	return d.volumeMap
+	return d.VolumeMap
 }
 
 type LeveldbIterator struct {

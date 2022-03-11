@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	TruncateSize  uint64 = 1 << 30          //1GB
-	MaxVolumeSize uint64 = 8 * TruncateSize // 8GB
+	GigabyteSize  uint64 = 1 << 30          //1GB
+	MaxVolumeSize uint64 = 8 * GigabyteSize // 8GB
 	InitIndexSize uint64 = 8                //default index size
 	InitIndex     uint64 = InitIndexSize    //default index
 	DefaultDir    string = "./_storage_"
