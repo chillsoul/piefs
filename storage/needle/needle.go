@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var FixedSize uint64 = 37 //(64*3 + 32 + 8 + 64) / 8;without file extension,ID 64,Size 64,Offset 64,Checksum 32,bool 8,time 64
+var FixedSize uint64 = 36 //(64*3 + 32 + 64) / 8;without file extension,ID 64,Size 64,Offset 64,Checksum 32,time 64
 var (
 	ErrNilNeedle   = errors.New("nil Needle")
 	ErrWrongLen    = errors.New("wrong Needle len")
@@ -20,7 +20,6 @@ type Needle struct {
 	Size         uint64    //size of body 64bits; stored
 	Offset       uint64    //offset of body 64bits; stored
 	Checksum     uint32    //checksum 32bits; stored
-	IsDeleted    bool      //flag of deleted status; stored
 	FileExt      string    //file extension; stored
 	UploadTime   time.Time //upload time; stored
 	File         *os.File  //volume file; memory only
@@ -39,12 +38,7 @@ func Marshal(n *Needle) (data []byte, err error) {
 	binary.BigEndian.PutUint64(data[16:24], n.Offset)
 	binary.BigEndian.PutUint32(data[24:28], n.Checksum)
 	binary.BigEndian.PutUint64(data[28:36], uint64(n.UploadTime.Unix()))
-	if n.IsDeleted {
-		data[36] = 1
-	} else {
-		data[36] = 0
-	}
-	copy(data[37:], []byte(n.FileExt))
+	copy(data[36:], []byte(n.FileExt))
 	return
 }
 
@@ -59,12 +53,7 @@ func Unmarshal(b []byte) (n *Needle, err error) {
 	n.Offset = binary.BigEndian.Uint64(b[16:24])
 	n.Checksum = binary.BigEndian.Uint32(b[24:28])
 	n.UploadTime = time.Unix(int64(binary.BigEndian.Uint64(b[28:36])), 0)
-	if b[36] == 1 {
-		n.IsDeleted = true
-	} else {
-		n.IsDeleted = false
-	}
-	n.FileExt = string(b[37:])
+	n.FileExt = string(b[36:])
 	return
 }
 func HeaderSize(extSize uint64) (size uint64) {
