@@ -10,6 +10,7 @@ import (
 
 func (m *Master) Monitor(w http.ResponseWriter, r *http.Request) {
 	m.lock.Lock()
+	defer m.lock.Unlock()
 	if r.Method != "POST" {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -24,16 +25,15 @@ func (m *Master) Monitor(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("收到%s:%d的心跳包\n", status.ApiHost, status.ApiPort)
+	fmt.Printf("receive %s:%d heartbeat\n", status.ApiHost, status.ApiPort)
 	flag := false
-	for _, v := range m.storageList {
+	for _, v := range m.StorageList {
 		if v.ApiHost == status.ApiHost && v.ApiPort == status.ApiPort {
 			v = status
 			flag = true
 		}
 	}
 	if !flag {
-		m.storageList = append(m.storageList, status)
+		m.StorageList = append(m.StorageList, status)
 	}
-	m.lock.Unlock()
 }
