@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime"
 	"net/http"
 	"piefs/storage/needle"
@@ -49,10 +50,87 @@ func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Storage) DelNeedle(w http.ResponseWriter, r *http.Request) {
+	var (
+		err error
+		vid uint64
+		nid uint64
+	)
+	if !s.isMaster(r) {
+		http.Error(w, fmt.Sprintf("permission denied"), http.StatusUnauthorized)
+		return
+	}
+	if r.Method != "POST" {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if vid, err = strconv.ParseUint(r.FormValue("vid"), 10, 64); err != nil {
+		http.Error(w, fmt.Sprintf("strconv.ParseInt(\"%s\") error(%v)", r.FormValue("vid"), err), http.StatusBadRequest)
+		return
+	}
 
+	if nid, err = strconv.ParseUint(r.FormValue("fid"), 10, 64); err != nil {
+		http.Error(w, fmt.Sprintf("strconv.ParseInt(\"%s\") error(%v)", r.FormValue("vid"), err), http.StatusNotFound)
+		return
+	}
+	err = s.directory.Del(vid, nid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Read Needle data error %v", err), http.StatusInternalServerError)
+	}
 }
 func (s *Storage) PutNeedle(w http.ResponseWriter, r *http.Request) {
+	var (
+		err error
+		vid uint64
+		nid uint64
+	)
+	if !s.isMaster(r) {
+		http.Error(w, fmt.Sprintf("permission denied"), http.StatusUnauthorized)
+		return
+	}
+	if r.Method != "POST" {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if vid, err = strconv.ParseUint(r.FormValue("vid"), 10, 64); err != nil {
+		http.Error(w, fmt.Sprintf("strconv.ParseInt(\"%s\") error(%v)", r.FormValue("vid"), err), http.StatusBadRequest)
+		return
+	}
+	if nid, err = strconv.ParseUint(r.FormValue("fid"), 10, 64); err != nil {
+		http.Error(w, fmt.Sprintf("strconv.ParseInt(\"%s\") error(%v)", r.FormValue("vid"), err), http.StatusNotFound)
+		return
+	}
+	v := s.directory.GetVolumeMap()[vid]
+	if v == nil {
+		http.Error(w, "can't find volume", http.StatusNotFound)
+		return
+	}
+	file, header, err := r.FormFile("file")
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20+1<<19) //1.5MB
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
 
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	n, err := v.NewFile(nid, data, header.Filename)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = s.directory.Set(vid, nid, n)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 func getContentType(fileExt string) string {
 	contentType := "application/octet-stream"
@@ -62,4 +140,11 @@ func getContentType(fileExt string) string {
 		}
 	}
 	return contentType
+}
+func (s *Storage) isMaster(r *http.Request) bool {
+	if r.RemoteAddr == fmt.Sprintf("%s:%d", s.masterHost, s.masterPort) {
+		return true
+	} else {
+		return false
+	}
 }
