@@ -1,0 +1,10 @@
+Pie File System
+Copyright 2022 chillsoul
+
+The Initial Development of some parts of the file system,
+which are copied from, derived from, or inspired by :
+Facebook Haystack paper at https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf, and
+xiaoyaoFS at https://github.com/AlexanderChiuluvB/xiaoyaoFS, and
+simplefs at https://github.com/hmli/simplefs, and
+seaweedfs https://github.com/chrislusf/seaweedfs, and
+whalefs at https://github.com/030io/whalefs.
