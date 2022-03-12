@@ -9,7 +9,7 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
 - Master
     - [ ] Web UI
     - [x] Heartbeat Monitor
-    - HTTP RESTful API
+    - HTTP API
       - [ ] Get needle physical URL
       - [ ] Get needle upload URL
       - [ ] Delete needle
@@ -20,7 +20,7 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
   - [x] Volume
   - [x] Needle
   - [x] Heartbeat
-  - HTTP RESTful API
+  - HTTP API
     - [ ] Add volume
     - [x] Get needle
     - [ ] Put needle
@@ -46,7 +46,6 @@ type Needle struct {
 	Size         uint64    //size of body 64bits; stored
 	Offset       uint64    //offset of body 64bits; stored
 	Checksum     uint32    //checksum 32bits; stored
-	IsDeleted    bool      //flag of deleted status; stored
 	FileExt      string    //file extension; stored
 	UploadTime   time.Time //upload time; stored
 	File         *os.File  //volume file; memory only
