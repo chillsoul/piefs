@@ -42,7 +42,7 @@ func (m *Master) checkStorageStatus() {
 	for {
 		m.lock.RLock()
 		for _, v := range m.StorageList {
-			if time.Since(v.LastHeartbeatTime) > storage.HeartBeatInterval+2 {
+			if time.Since(v.LastHeartbeatTime) > storage.HeartBeatInterval*2 {
 				v.Alive = false
 				fmt.Printf("storage %s:%d offline, last heartbeat at %s \n", v.ApiHost, v.ApiPort, v.LastHeartbeatTime)
 			}

@@ -29,7 +29,7 @@ func (m *Master) Monitor(w http.ResponseWriter, r *http.Request) {
 	flag := false
 	for _, v := range m.StorageList {
 		if v.ApiHost == status.ApiHost && v.ApiPort == status.ApiPort {
-			v = status
+			*v = *status
 			flag = true
 		}
 	}
