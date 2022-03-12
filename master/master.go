@@ -10,28 +10,28 @@ import (
 )
 
 type Master struct {
-	masterHost  string
-	masterPort  int
-	storageList []*storage.Status
-	apiServer   *http.ServeMux
-	lock        sync.RWMutex //storageList lock
+	MasterHost  string
+	MasterPort  int
+	StorageList []*storage.Status
+	ApiServer   *http.ServeMux
+	lock        sync.RWMutex //StorageList lock
 }
 
 func NewMaster(config *toml.Tree) (m *Master, err error) {
 	m = &Master{
-		masterHost:  config.Get("master.host").(string),
-		masterPort:  int(config.Get("master.port").(int64)),
-		storageList: make([]*storage.Status, 0),
-		apiServer:   http.NewServeMux(),
+		MasterHost:  config.Get("master.host").(string),
+		MasterPort:  int(config.Get("master.port").(int64)),
+		StorageList: make([]*storage.Status, 0),
+		ApiServer:   http.NewServeMux(),
 	}
-	m.apiServer.HandleFunc("/Monitor", m.Monitor)
+	m.ApiServer.HandleFunc("/Monitor", m.Monitor)
 
 	return m, err
 }
 
 func (m *Master) Start() {
 	go m.checkStorageStatus()
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", m.masterHost, m.masterPort), m.apiServer)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", m.MasterHost, m.MasterPort), m.ApiServer)
 	if err != nil {
 		panic(err)
 	}
@@ -41,9 +41,10 @@ func (m *Master) checkStorageStatus() {
 
 	for {
 		m.lock.RLock()
-		for _, v := range m.storageList {
+		for _, v := range m.StorageList {
 			if time.Since(v.LastHeartbeatTime) > storage.HeartBeatInterval+2 {
 				v.Alive = false
+				fmt.Printf("storage %s:%d offline, last heartbeat at %s \n", v.ApiHost, v.ApiPort, v.LastHeartbeatTime)
 			}
 		}
 		m.lock.RUnlock()
