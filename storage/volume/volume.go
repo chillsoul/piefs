@@ -125,7 +125,6 @@ func (v *Volume) NewNeedle(id uint64, fileSize uint64, fileExt string, checksum 
 		Size:       fileSize,
 		Offset:     offset, // needle 在 volume 的初始偏移量
 		Checksum:   checksum,
-		IsDeleted:  false,
 		FileExt:    fileExt,
 		UploadTime: time.Now().Round(time.Second),
 		File:       v.File,
