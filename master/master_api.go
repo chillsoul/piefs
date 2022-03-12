@@ -15,6 +15,10 @@ func (m *Master) Monitor(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	if r.Header.Get("password") != m.password {
+		http.Error(w, "permission denied", http.StatusUnauthorized)
+		return
+	}
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println(err)
@@ -27,13 +31,13 @@ func (m *Master) Monitor(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("receive %s:%d heartbeat\n", status.ApiHost, status.ApiPort)
 	flag := false
-	for _, v := range m.StorageList {
+	for _, v := range m.storageList {
 		if v.ApiHost == status.ApiHost && v.ApiPort == status.ApiPort {
 			*v = *status
 			flag = true
 		}
 	}
 	if !flag {
-		m.StorageList = append(m.StorageList, status)
+		m.storageList = append(m.storageList, status)
 	}
 }

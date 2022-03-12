@@ -19,6 +19,7 @@ type Storage struct {
 	storeHost  string
 	storePort  int
 	storeDir   string
+	password   string
 	directory  directory.Directory
 	apiServer  *http.ServeMux
 }
@@ -30,6 +31,7 @@ func NewStorage(config *toml.Tree) (s *Storage, err error) {
 		storeHost:  config.Get("store.host").(string),
 		storePort:  int(config.Get("store.port").(int64)),
 		storeDir:   config.Get("store.dir").(string),
+		password:   config.Get("master.password").(string),
 		directory:  nil,
 		apiServer:  http.NewServeMux(),
 	}
@@ -74,7 +76,9 @@ func (s *Storage) heartbeat() {
 			}
 		}
 		body, _ := json.Marshal(ss)
-		resp, _ := http.Post(url, "application/json", bytes.NewReader(body))
+		req, _ := http.NewRequest("POST", url, bytes.NewReader(body))
+		req.Header.Set("password", s.password)
+		resp, _ := http.DefaultClient.Do(req)
 		if resp != nil {
 			resp.Body.Close()
 		}

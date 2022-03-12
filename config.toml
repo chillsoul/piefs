@@ -4,6 +4,7 @@
 [master]
 host="127.0.0.1"
 port=8080
+password="password"#used for storage heartbeat authentication
 [store]
 host="127.0.0.1"
 port=9090
