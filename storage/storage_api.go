@@ -7,12 +7,32 @@ import (
 	"mime"
 	"net/http"
 	"piefs/storage/needle"
+	"piefs/storage/volume"
 	"piefs/util"
 	"strconv"
 )
 
 func (s *Storage) AddVolume(w http.ResponseWriter, r *http.Request) {
-
+	var (
+		ok  bool
+		err error
+		vid uint64
+		v   *volume.Volume
+	)
+	if !util.IsMethodAllowed(w, r, "POST") {
+		return
+	}
+	if ok, vid = util.GetVidFromFormValue(w, r); !ok {
+		return
+	}
+	if v, err = volume.NewVolume(vid, s.storeDir); err != nil {
+		http.Error(w, fmt.Sprintf("create new volume for vid %s in dir %s error(%v)", r.FormValue("vid"), s.storeDir, err),
+			http.StatusInternalServerError)
+		return
+	}
+	s.directory.GetVolumeMap()[vid] = v
+	w.WriteHeader(http.StatusCreated)
+	return
 }
 func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request) {
 	var (
