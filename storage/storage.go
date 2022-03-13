@@ -31,7 +31,7 @@ func NewStorage(config *toml.Tree) (s *Storage, err error) {
 		storeHost:  config.Get("store.host").(string),
 		storePort:  int(config.Get("store.port").(int64)),
 		storeDir:   config.Get("store.dir").(string),
-		password:   config.Get("master.password").(string),
+		password:   config.Get("general.password").(string),
 		directory:  nil,
 		apiServer:  http.NewServeMux(),
 	}
@@ -70,8 +70,10 @@ func (s *Storage) heartbeat() {
 		var i = 0
 		for id, v := range s.directory.GetVolumeMap() {
 			ss.VolumeStatusList[i] = &volume.Status{
-				ID:   id,
-				Size: v.Size,
+				ApiHost: ss.ApiHost,
+				ApiPort: ss.ApiPort,
+				ID:      id,
+				Size:    v.Size,
 				//Writable: false,
 			}
 		}

@@ -1,10 +1,13 @@
-#please fill master/store.host with public IP
-#(if use cluster with multiple ips)
-#or 127.0.0.1 (both master and storage are local)
+[general]
+password="password" #used for storage heartbeat authentication
+replica=1 #replicas number, there must be NOT LESS storage servers than replicas
+
+#***FOR MASTER and STORAGE***
+#Please fill master/store.host with public IP
+#or 127.0.0.1 (only both master and storage are local)
 [master]
 host="127.0.0.1"
 port=8080
-password="password"#used for storage heartbeat authentication
 [store]
 host="127.0.0.1"
 port=9090
