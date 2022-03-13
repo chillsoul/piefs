@@ -7,6 +7,7 @@ import (
 	"mime"
 	"net/http"
 	"piefs/storage/needle"
+	"piefs/util"
 	"strconv"
 )
 
@@ -15,22 +16,17 @@ func (s *Storage) AddVolume(w http.ResponseWriter, r *http.Request) {
 }
 func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request) {
 	var (
+		ok  bool
 		err error
 		vid uint64
 		nid uint64
 		n   *needle.Needle
 	)
 	//request check
-	if r.Method != "GET" {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	if !util.IsMethodAllowed(w, r, "GET") {
 		return
 	}
-	if vid, err = strconv.ParseUint(r.FormValue("vid"), 10, 64); err != nil {
-		http.Error(w, fmt.Sprintf("strconv.ParseUInt(\"%s\") error(%v)", r.FormValue("vid"), err), http.StatusBadRequest)
-		return
-	}
-	if nid, err = strconv.ParseUint(r.FormValue("nid"), 10, 64); err != nil {
-		http.Error(w, fmt.Sprintf("strconv.ParseUInt(\"%s\") error(%v)", r.FormValue("nid"), err), http.StatusBadRequest)
+	if ok, vid, nid = util.GetVidNidFromFormValue(w, r); !ok {
 		return
 	}
 	n, err = s.directory.Get(vid, nid)
@@ -51,25 +47,18 @@ func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request) {
 }
 func (s *Storage) DelNeedle(w http.ResponseWriter, r *http.Request) {
 	var (
+		ok  bool
 		err error
 		vid uint64
 		nid uint64
 	)
-	if !s.isMaster(r) {
-		http.Error(w, fmt.Sprintf("permission denied"), http.StatusUnauthorized)
+	if !s.isAuthPassed(w, r) {
 		return
 	}
-	if r.Method != "POST" {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	if !util.IsMethodAllowed(w, r, "POST") {
 		return
 	}
-	if vid, err = strconv.ParseUint(r.FormValue("vid"), 10, 64); err != nil {
-		http.Error(w, fmt.Sprintf("strconv.ParseInt(\"%s\") error(%v)", r.FormValue("vid"), err), http.StatusBadRequest)
-		return
-	}
-
-	if nid, err = strconv.ParseUint(r.FormValue("fid"), 10, 64); err != nil {
-		http.Error(w, fmt.Sprintf("strconv.ParseInt(\"%s\") error(%v)", r.FormValue("vid"), err), http.StatusNotFound)
+	if ok, vid, nid = util.GetVidNidFromFormValue(w, r); !ok {
 		return
 	}
 	err = s.directory.Del(vid, nid)
@@ -79,24 +68,18 @@ func (s *Storage) DelNeedle(w http.ResponseWriter, r *http.Request) {
 }
 func (s *Storage) PutNeedle(w http.ResponseWriter, r *http.Request) {
 	var (
+		ok  bool
 		err error
 		vid uint64
 		nid uint64
 	)
-	if !s.isMaster(r) {
-		http.Error(w, fmt.Sprintf("permission denied"), http.StatusUnauthorized)
+	if !s.isAuthPassed(w, r) {
 		return
 	}
-	if r.Method != "POST" {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	if !util.IsMethodAllowed(w, r, "POST") {
 		return
 	}
-	if vid, err = strconv.ParseUint(r.FormValue("vid"), 10, 64); err != nil {
-		http.Error(w, fmt.Sprintf("strconv.ParseInt(\"%s\") error(%v)", r.FormValue("vid"), err), http.StatusBadRequest)
-		return
-	}
-	if nid, err = strconv.ParseUint(r.FormValue("fid"), 10, 64); err != nil {
-		http.Error(w, fmt.Sprintf("strconv.ParseInt(\"%s\") error(%v)", r.FormValue("vid"), err), http.StatusNotFound)
+	if ok, vid, nid = util.GetVidNidFromFormValue(w, r); !ok {
 		return
 	}
 	v := s.directory.GetVolumeMap()[vid]
@@ -141,10 +124,11 @@ func getContentType(fileExt string) string {
 	}
 	return contentType
 }
-func (s *Storage) isMaster(r *http.Request) bool {
-	if r.RemoteAddr == fmt.Sprintf("%s:%d", s.masterHost, s.masterPort) {
-		return true
-	} else {
+
+func (s *Storage) isAuthPassed(w http.ResponseWriter, r *http.Request) bool {
+	if r.Header.Get("password") != s.password {
+		http.Error(w, "permission denied", http.StatusUnauthorized)
 		return false
 	}
+	return true
 }
