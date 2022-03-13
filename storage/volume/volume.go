@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"hash/crc32"
 	"io"
 	"os"
 	"path/filepath"
@@ -111,7 +110,7 @@ func (v *Volume) allocSpace(fileBodySize uint64, fileExtSize uint64) (offset uin
 // 1. alloc space
 // 2. set needle's header
 // 3. create meta info
-func (v *Volume) NewNeedle(id uint64, fileSize uint64, fileExt string, checksum uint32) (n *Needle, err error) {
+func (v *Volume) NewNeedle(id uint64, fileSize uint64, fileExt string) (n *Needle, err error) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
@@ -124,7 +123,6 @@ func (v *Volume) NewNeedle(id uint64, fileSize uint64, fileExt string, checksum 
 		ID:         id,
 		Size:       fileSize,
 		Offset:     offset, // needle 在 volume 的初始偏移量
-		Checksum:   checksum,
 		FileExt:    fileExt,
 		UploadTime: time.Now().Round(time.Second),
 		File:       v.File,
@@ -146,8 +144,7 @@ func (v *Volume) NewNeedle(id uint64, fileSize uint64, fileExt string, checksum 
 	return n, err
 }
 func (v *Volume) NewFile(id uint64, data []byte, fileExt string) (needle *Needle, err error) {
-	checksum := crc32.ChecksumIEEE(data)
-	needle, err = v.NewNeedle(id, uint64(len(data)), fileExt, checksum)
+	needle, err = v.NewNeedle(id, uint64(len(data)), fileExt)
 
 	if err != nil {
 		return nil, fmt.Errorf("new needle : %v", err)
