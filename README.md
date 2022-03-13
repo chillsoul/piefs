@@ -45,7 +45,6 @@ type Needle struct {
 	ID           uint64    //unique ID 64bits; stored
 	Size         uint64    //size of body 64bits; stored
 	Offset       uint64    //offset of body 64bits; stored
-	Checksum     uint32    //checksum 32bits; stored
 	FileExt      string    //file extension; stored
 	UploadTime   time.Time //upload time; stored
 	File         *os.File  //volume file; memory only

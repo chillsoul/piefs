@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var FixedSize uint64 = 36 //(64*3 + 32 + 64) / 8;without file extension,ID 64,Size 64,Offset 64,Checksum 32,time 64
+var FixedSize uint64 = 32 //(64*3 + 64) / 8;without file extension,ID 64,Size 64,Offset 64,time 64
 var (
 	ErrNilNeedle   = errors.New("nil Needle")
 	ErrWrongLen    = errors.New("wrong Needle len")
@@ -19,7 +19,6 @@ type Needle struct {
 	ID           uint64    //unique ID 64bits; stored
 	Size         uint64    //size of body 64bits; stored
 	Offset       uint64    //offset of body 64bits; stored
-	Checksum     uint32    //checksum 32bits; stored
 	FileExt      string    //file extension; stored
 	UploadTime   time.Time //upload time; stored
 	File         *os.File  //volume file; memory only
@@ -36,8 +35,7 @@ func Marshal(n *Needle) (data []byte, err error) {
 	binary.BigEndian.PutUint64(data[0:8], n.ID)
 	binary.BigEndian.PutUint64(data[8:16], n.Size)
 	binary.BigEndian.PutUint64(data[16:24], n.Offset)
-	binary.BigEndian.PutUint32(data[24:28], n.Checksum)
-	binary.BigEndian.PutUint64(data[28:36], uint64(n.UploadTime.Unix()))
+	binary.BigEndian.PutUint64(data[24:32], uint64(n.UploadTime.Unix()))
 	copy(data[36:], []byte(n.FileExt))
 	return
 }
@@ -51,8 +49,7 @@ func Unmarshal(b []byte) (n *Needle, err error) {
 	n.ID = binary.BigEndian.Uint64(b[0:8])
 	n.Size = binary.BigEndian.Uint64(b[8:16])
 	n.Offset = binary.BigEndian.Uint64(b[16:24])
-	n.Checksum = binary.BigEndian.Uint32(b[24:28])
-	n.UploadTime = time.Unix(int64(binary.BigEndian.Uint64(b[28:36])), 0)
+	n.UploadTime = time.Unix(int64(binary.BigEndian.Uint64(b[24:32])), 0)
 	n.FileExt = string(b[36:])
 	return
 }
