@@ -9,11 +9,13 @@ import (
 
 func main() {
 	config, err := toml.LoadFile("./config.toml")
+	config2, err := toml.LoadFile("./config2.toml")
+	s1, err := storage.NewStorage(config)
 	if err != nil {
-		fmt.Println("error load config:", err)
+		fmt.Println("error new storage:", err)
 		return
 	}
-	s, err := storage.NewStorage(config)
+	s2, err := storage.NewStorage(config2)
 	if err != nil {
 		fmt.Println("error new storage:", err)
 		return
@@ -23,7 +25,8 @@ func main() {
 		fmt.Println("error new master:", err)
 		return
 	}
-	go s.Start()
 	go m.Start()
+	go s1.Start()
+	go s2.Start()
 	select {}
 }
