@@ -10,7 +10,7 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
     - [ ] Web UI
     - [x] Heartbeat Monitor
     - HTTP API
-      - [ ] Get needle physical URL
+      - [x] Get needle physical URL
       - [ ] Get needle upload URL
       - [ ] Delete needle
 - Storage
@@ -21,10 +21,10 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
   - [x] Needle
   - [x] Heartbeat
   - HTTP API
-    - [ ] Add volume
+    - [x] Add volume
     - [x] Get needle
-    - [ ] Put needle
-    - [ ] Delete needle
+    - [x] Put needle
+    - [x] Delete needle
 ---
 
 ## Document
