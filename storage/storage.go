@@ -54,7 +54,6 @@ func (s *Storage) Start() {
 		panic(err)
 	}
 }
-
 func (s *Storage) heartbeat() {
 	url := fmt.Sprintf("http://%s:%d/Monitor", s.masterHost, s.masterPort)
 	tick := time.NewTicker(HeartBeatInterval)
@@ -67,15 +66,14 @@ func (s *Storage) heartbeat() {
 			Alive:             true,
 			LastHeartbeatTime: time.Now(),
 		}
-		var i = 0
 		for id, v := range s.directory.GetVolumeMap() {
-			ss.VolumeStatusList[i] = &volume.Status{
+			ss.VolumeStatusList = append(ss.VolumeStatusList, &volume.Status{
 				ApiHost: ss.ApiHost,
 				ApiPort: ss.ApiPort,
 				ID:      id,
 				Size:    v.Size,
 				//Writable: false,
-			}
+			})
 		}
 		body, _ := json.Marshal(ss)
 		req, _ := http.NewRequest("POST", url, bytes.NewReader(body))
