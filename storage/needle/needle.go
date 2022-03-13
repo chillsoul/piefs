@@ -36,7 +36,7 @@ func Marshal(n *Needle) (data []byte, err error) {
 	binary.BigEndian.PutUint64(data[8:16], n.Size)
 	binary.BigEndian.PutUint64(data[16:24], n.Offset)
 	binary.BigEndian.PutUint64(data[24:32], uint64(n.UploadTime.Unix()))
-	copy(data[36:], []byte(n.FileExt))
+	copy(data[32:], []byte(n.FileExt))
 	return
 }
 
@@ -50,7 +50,7 @@ func Unmarshal(b []byte) (n *Needle, err error) {
 	n.Size = binary.BigEndian.Uint64(b[8:16])
 	n.Offset = binary.BigEndian.Uint64(b[16:24])
 	n.UploadTime = time.Unix(int64(binary.BigEndian.Uint64(b[24:32])), 0)
-	n.FileExt = string(b[36:])
+	n.FileExt = string(b[32:])
 	return
 }
 func HeaderSize(extSize uint64) (size uint64) {
