@@ -1,6 +1,6 @@
 [general]
 password="password" #used for storage heartbeat authentication
-replica=1 #replicas number, there must be NOT LESS storage servers than replicas
+replica=2 #replicas number, there must be NOT LESS storage servers than replicas
 
 #***FOR MASTER and STORAGE***
 #Please fill master/store.host with public IP

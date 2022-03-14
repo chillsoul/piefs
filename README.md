@@ -11,7 +11,7 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
     - [x] Heartbeat Monitor
     - HTTP API
       - [x] Get needle physical URL
-      - [ ] Get needle upload URL
+      - [x] Upload and Hand off needle
       - [ ] Delete needle
 - Storage
   - [ ] Cache

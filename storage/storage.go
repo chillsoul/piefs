@@ -63,15 +63,14 @@ func (s *Storage) heartbeat() {
 			ApiHost:           s.storeHost,
 			ApiPort:           s.storePort,
 			VolumeStatusList:  make([]*volume.Status, 0, len(s.directory.GetVolumeMap())),
-			Alive:             true,
 			LastHeartbeatTime: time.Now(),
 		}
 		for id, v := range s.directory.GetVolumeMap() {
 			ss.VolumeStatusList = append(ss.VolumeStatusList, &volume.Status{
-				ApiHost: ss.ApiHost,
-				ApiPort: ss.ApiPort,
-				ID:      id,
-				Size:    v.Size,
+				ApiHost:     ss.ApiHost,
+				ApiPort:     ss.ApiPort,
+				ID:          id,
+				CurrentSize: v.CurrentOffset,
 				//Writable: false,
 			})
 		}

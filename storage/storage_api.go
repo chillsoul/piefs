@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"mime"
 	"net/http"
+	"path"
 	"piefs/storage/needle"
 	"piefs/storage/volume"
 	"piefs/util"
@@ -108,20 +109,19 @@ func (s *Storage) PutNeedle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	file, header, err := r.FormFile("file")
-	r.Body = http.MaxBytesReader(w, r.Body, 1<<20+1<<19) //1.5MB
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer file.Close()
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20+1<<19) //1.5MB
 
 	data, err := ioutil.ReadAll(file)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	n, err := v.NewFile(nid, data, header.Filename)
+	n, err := v.NewFile(nid, data, path.Ext(header.Filename))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

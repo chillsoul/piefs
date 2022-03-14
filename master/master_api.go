@@ -9,6 +9,8 @@ import (
 	"piefs/storage"
 	"piefs/storage/volume"
 	"piefs/util"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -17,8 +19,8 @@ func (m *Master) GetNeedle(w http.ResponseWriter, r *http.Request) {
 		ok   bool
 		vid  uint64
 		nid  uint64
-		host string = "not found"
-		port int    = 65535
+		host string
+		port int
 	)
 	if ok, vid, nid = util.GetVidNidFromFormValue(w, r); !ok {
 		return
@@ -33,6 +35,60 @@ func (m *Master) GetNeedle(w http.ResponseWriter, r *http.Request) {
 	host = m.volumeStatusListMap[vid][randInt].ApiHost
 	port = m.volumeStatusListMap[vid][randInt].ApiPort
 	http.Redirect(w, r, fmt.Sprintf("http://%s:%d/GetNeedle?vid=%d&nid=%d", host, port, vid, nid), http.StatusFound)
+}
+func (m *Master) HandOutNeedle(w http.ResponseWriter, r *http.Request) {
+	var (
+		err error
+		nid uint64
+	)
+	if !m.isAuthPassed(w, r) {
+		return
+	}
+	if !util.IsMethodAllowed(w, r, "POST") {
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "r.FromFile: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	vsList, err := m.getWritableVolumes(uint64(header.Size))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20+1<<19) //1.5MB
+	nid = util.UniqueId()
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	wg := sync.WaitGroup{}
+	var uploadErr []string
+	for _, vStatus := range vsList {
+		wg.Add(1)
+		go func(vs *volume.Status) {
+			defer wg.Done()
+			//给该vid对应的所有volume上传文件
+			err = vs.UploadFile(nid, &data, header.Filename, m.password)
+			if err != nil {
+				uploadErr = append(uploadErr, fmt.Sprintf("host: %s port: %d error: %s", vs.ApiHost, vs.ApiPort, err))
+			}
+		}(vStatus)
+	}
+	wg.Wait()
+	if len(uploadErr) != 0 {
+		http.Error(w, strings.Join(uploadErr, "\n"), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	result := []byte(fmt.Sprintf("{'vid':%d,\n'nid':%d}", vsList[0].ID, nid))
+	w.Write(result)
+	//space check
 }
 func (m *Master) Monitor(w http.ResponseWriter, r *http.Request) {
 	if !util.IsMethodAllowed(w, r, "POST") {
