@@ -5,7 +5,10 @@ A simple file system based on [Facebook Haystack Paper](https://www.usenix.org/l
 Only for learning, **NOT RECOMMEND** to use for production environment (see [SeaweedFS](https://github.com/chrislusf/seaweedfs) instead).
 
 ---
-### TODO List
+### Planning
+Planning to refactor architecture. May use gRPC or go-micro, etc., to make this system more simple, Especially HTTP part.
+
+### TODO List(before)
 - Master
     - [ ] Web UI
     - [x] Heartbeat Monitor

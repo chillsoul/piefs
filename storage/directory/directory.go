@@ -10,8 +10,9 @@ type Directory interface {
 	Has(vid, nid uint64) (has bool)
 	Del(vid, nid uint64) (err error)
 	Set(vid, nid uint64, needle *Needle) (err error)
-	Iter() (iter Iterator)
+	Iter(vid uint64) (iter Iterator)
 	GetVolumeMap() map[uint64]*volume.Volume
+	NewVolume(vid uint64) (err error)
 }
 
 type Iterator interface {

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var FixedSize uint64 = 32 //(64*3 + 64) / 8;without file extension,ID 64,Size 64,Offset 64,time 64
+var FixedSize uint64 = 32 //(64*3 + 64) / 8;without file extension,ID 64,MaxSize 64,Offset 64,time 64
 var (
 	ErrNilNeedle   = errors.New("nil Needle")
 	ErrWrongLen    = errors.New("wrong Needle len")

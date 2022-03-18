@@ -57,7 +57,7 @@ func (m *Master) checkStorageStatus() {
 	for {
 		m.statusLock.Lock()
 		for index, ss := range m.storageStatusList {
-			if time.Since(ss.LastHeartbeatTime) > storage.HeartBeatInterval*2 {
+			if time.Since(ss.LastHeartbeatTime) > storage.HeartBeatInterval*999 {
 				//ss.Alive = false
 				for _, vs := range ss.VolumeStatusList { //for volumeStatus.ID
 					if len(m.volumeStatusListMap[vs.ID]) == 1 { //only 1 storage has this volume

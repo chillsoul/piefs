@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	. "piefs/storage/needle"
+	"piefs/util"
 	"strconv"
 	"sync"
 	"time"
@@ -18,23 +19,19 @@ const (
 	MaxVolumeSize uint64 = 8 * GigabyteSize // 8GB
 	InitIndexSize uint64 = 8                //default index size
 	InitIndex     uint64 = InitIndexSize    //default index
-	DefaultDir    string = "./_storage_"
 )
 
 type Volume struct {
 	ID            uint64   //volume id
 	File          *os.File //volume file
-	Size          uint64
+	MaxSize       uint64
 	Path          string
 	CurrentOffset uint64 //every volume file's first 8 byte is current offset
 	lock          sync.RWMutex
 }
 
 func NewVolume(id uint64, dir string) (v *Volume, err error) {
-	if dir == "" {
-		dir = DefaultDir
-	}
-	pathMustExists(dir)
+	util.PathMustExists(dir)
 	path := filepath.Join(dir, strconv.FormatUint(id, 10)+".volume")
 	v = new(Volume)
 	v.ID = id
@@ -61,7 +58,7 @@ func NewVolume(id uint64, dir string) (v *Volume, err error) {
 			return nil, err
 		} //for new volume, it should be InitIndex instead of currentIndex(EOF)
 	}
-	v.Size = MaxVolumeSize
+	v.MaxSize = MaxVolumeSize
 	v.lock = sync.RWMutex{}
 	return
 }
@@ -74,22 +71,7 @@ func (v *Volume) setCurrentIndex(currentOffset uint64) (err error) {
 	_, err = v.File.WriteAt(offsetByte, 0)
 	return
 }
-func pathExist(path string) bool {
-	_, err := os.Stat(path)
-	if err != nil && os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
-func pathMustExists(path string) {
-	exists := pathExist(path)
-	if !exists {
-		err := os.MkdirAll(path, 0755)
-		if err != nil {
-			panic("Path Must exists: " + err.Error())
-		}
-	}
-}
+
 func (v *Volume) RemainingSpace() uint64 {
 	return MaxVolumeSize - v.CurrentOffset
 }

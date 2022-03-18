@@ -5,54 +5,66 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"io/ioutil"
-	"path/filepath"
+	"path"
 	"piefs/storage/needle"
 	"piefs/storage/volume"
+	"piefs/util"
 	"strconv"
 	"strings"
 )
 
 //LeveldbDirectory store<<volume id,needle id>,needle metadata>
 type LeveldbDirectory struct {
-	db        *leveldb.DB
-	path      string // leveldb 文件存放路径
+	dbMap     map[uint64]*leveldb.DB
+	path      string // storage path
 	VolumeMap map[uint64]*volume.Volume
 	//iter iterator.Iterator
 }
 
 func NewLeveldbDirectory(dir string) (d *LeveldbDirectory, err error) {
 	d = new(LeveldbDirectory)
-	d.path = filepath.Join(dir, "index") //all volumes in one directory.
-	d.db, err = leveldb.OpenFile(d.path, nil)
-	if err != nil {
-		return nil, err
-	}
-	volumeInfos, err := ioutil.ReadDir(dir)
-	if err != nil {
-		panic(err)
-	}
+	util.PathMustExists(dir)
+	d.path = dir
+	d.dbMap = make(map[uint64]*leveldb.DB)
 	d.VolumeMap = make(map[uint64]*volume.Volume)
-	for _, volumeFile := range volumeInfos {
-		volumeFileName := volumeFile.Name()
-		if strings.HasSuffix(volumeFileName, ".volume") {
-			volumeId, err := strconv.ParseUint(volumeFileName[:len(volumeFileName)-7], 10, 64) //5:len(".volume")
+	//one volumes one levelDB index.
+	fileInfos, err := ioutil.ReadDir(dir)
+	for _, info := range fileInfos {
+		name := info.Name()
+		if strings.HasPrefix(name, "volume_") {
+			vid, err := strconv.ParseUint(name[7:], 10, 64)
 			if err != nil {
 				return nil, err
 			}
-			d.VolumeMap[volumeId], err = volume.NewVolume(volumeId, dir)
+			d.dbMap[vid], err = leveldb.OpenFile(path.Join(d.path, name, "index"), nil)
+			if err != nil {
+				return nil, err
+			}
+			d.VolumeMap[vid], err = volume.NewVolume(vid, path.Join(d.path, name))
 			if err != nil {
 				return nil, err
 			}
 		}
+
 	}
 	return
 }
-
+func (d *LeveldbDirectory) NewVolume(vid uint64) (err error) {
+	name := "volume_" + strconv.FormatUint(vid, 10)
+	d.dbMap[vid], err = leveldb.OpenFile(path.Join(d.path, name, "index"), nil)
+	if err != nil {
+		return err
+	}
+	d.VolumeMap[vid], err = volume.NewVolume(vid, path.Join(d.path, name))
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func (d *LeveldbDirectory) Get(vid, nid uint64) (n *needle.Needle, err error) {
-	key := make([]byte, 16)
-	binary.BigEndian.PutUint64(key[:8], vid)
-	binary.BigEndian.PutUint64(key[8:16], nid)
-	data, err := d.db.Get(key, nil)
+	key := make([]byte, 8)
+	binary.BigEndian.PutUint64(key, nid)
+	data, err := d.dbMap[vid].Get(key, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -62,33 +74,30 @@ func (d *LeveldbDirectory) Get(vid, nid uint64) (n *needle.Needle, err error) {
 }
 
 func (d *LeveldbDirectory) Has(vid, nid uint64) (has bool) {
-	key := make([]byte, 16)
-	binary.BigEndian.PutUint64(key[:8], vid)
-	binary.BigEndian.PutUint64(key[8:16], nid)
-	_, err := d.db.Get(key, nil)
+	key := make([]byte, 8)
+	binary.BigEndian.PutUint64(key, nid)
+	_, err := d.dbMap[vid].Get(key, nil)
 	return err == nil
 }
 
 func (d *LeveldbDirectory) Set(vid, nid uint64, n *needle.Needle) (err error) {
-	key := make([]byte, 16)
-	binary.BigEndian.PutUint64(key[:8], vid)
-	binary.BigEndian.PutUint64(key[8:16], nid)
+	key := make([]byte, 8)
+	binary.BigEndian.PutUint64(key, nid)
 	data, err := needle.Marshal(n)
 	if err != nil {
 		return err
 	}
-	return d.db.Put(key, data, nil)
+	return d.dbMap[vid].Put(key, data, nil)
 }
 
 func (d *LeveldbDirectory) Del(vid, nid uint64) (err error) {
-	key := make([]byte, 16)
-	binary.BigEndian.PutUint64(key[:8], vid)
-	binary.BigEndian.PutUint64(key[8:16], nid)
-	return d.db.Delete(key, nil)
+	key := make([]byte, 8)
+	binary.BigEndian.PutUint64(key, nid)
+	return d.dbMap[vid].Delete(key, nil)
 }
 
-func (d *LeveldbDirectory) Iter() (iter Iterator) {
-	it := d.db.NewIterator(nil, nil)
+func (d *LeveldbDirectory) Iter(vid uint64) (iter Iterator) {
+	it := d.dbMap[vid].NewIterator(nil, nil)
 	levelIt := &LeveldbIterator{
 		iter: it,
 	}

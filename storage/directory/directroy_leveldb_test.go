@@ -14,7 +14,7 @@ func TestNewLeveldbDirectory(t *testing.T) {
 		t.Fatal("error creat new leveldb directory", err)
 	}
 	defer func() {
-		d.db.Close()
+		d.dbMap.Close()
 		os.RemoveAll("./_tmp_leveldb")
 	}()
 	n := &needle.Needle{
