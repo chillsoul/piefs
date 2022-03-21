@@ -34,7 +34,7 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
 
 ### Directory
 
-A directory use Key-Value database (LevelDB now) to store the mapping relationship between volume id,needle id and needle metadata (store <<vid,nid>,n metadata> in short). 
+A directory use Key-Value database (LevelDB now) to store the mapping relationship of one volume between needle id and needle metadata (map[vid]LevelDB<nid,n metadata> in short). 
 
 ### Volume
 
