@@ -1,0 +1,23 @@
+syntax="proto3";
+option go_package="/protobuf/master";
+import public "google/protobuf/timestamp.proto";
+service Master{
+  rpc Heartbeat(StorageStatus) returns(HeartbeatResponse){}
+}
+message StorageStatus{
+  string url=1;
+  repeated VolumeStatus volume_status_list=2;
+  google.protobuf.Timestamp last_beat_time=3;
+}
+enum Status{
+  SUCCESS=0;
+  FAILURE=1;
+}
+message HeartbeatResponse{
+  Status code=1;
+}
+message VolumeStatus{
+  string url=1;
+  uint64 id=2;
+  uint64 current_size=3;
+}

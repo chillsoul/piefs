@@ -70,9 +70,7 @@ func (s *Storage) DelNeedle(w http.ResponseWriter, r *http.Request) {
 		vid uint64
 		nid uint64
 	)
-	if !s.isAuthPassed(w, r) {
-		return
-	}
+
 	if !util.IsMethodAllowed(w, r, "POST") {
 		return
 	}
@@ -91,9 +89,7 @@ func (s *Storage) PutNeedle(w http.ResponseWriter, r *http.Request) {
 		vid uint64
 		nid uint64
 	)
-	if !s.isAuthPassed(w, r) {
-		return
-	}
+
 	if !util.IsMethodAllowed(w, r, "POST") {
 		return
 	}
@@ -140,12 +136,4 @@ func getContentType(fileExt string) string {
 		}
 	}
 	return contentType
-}
-
-func (s *Storage) isAuthPassed(w http.ResponseWriter, r *http.Request) bool {
-	if r.Header.Get("password") != s.password {
-		http.Error(w, "permission denied", http.StatusUnauthorized)
-		return false
-	}
-	return true
 }

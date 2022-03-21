@@ -17,20 +17,6 @@ type Status struct {
 	//Writable bool
 }
 
-func (s *Status) IsWritable() bool {
-	if s.CurrentSize < MaxVolumeSize {
-		return true
-	} else {
-		return false
-	}
-}
-func (s *Status) HasEnoughSpace(size uint64) bool {
-	if s.CurrentSize+size <= MaxVolumeSize {
-		return true
-	} else {
-		return false
-	}
-}
 func (s *Status) UploadFile(nid uint64, data *[]byte, fileName string, password string) error {
 	writerBuf := &bytes.Buffer{} //will auto allocate slice when write()
 	mPart := multipart.NewWriter(writerBuf)

@@ -1,5 +1,4 @@
 [general]
-password="password" #used for storage heartbeat authentication
 replica=2 #replicas number, there must be NOT LESS storage servers than replicas
 
 #***FOR MASTER and STORAGE***

@@ -1,13 +1,16 @@
 package storage
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
 	"github.com/pelletier/go-toml"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"net/http"
+	master_pb "piefs/protobuf/master"
+	storage_pb "piefs/protobuf/storage"
 	"piefs/storage/directory"
-	"piefs/storage/volume"
 	"time"
 )
 
@@ -19,9 +22,10 @@ type Storage struct {
 	storeHost  string
 	storePort  int
 	storeDir   string
-	password   string
 	directory  directory.Directory
 	apiServer  *http.ServeMux
+	storage_pb.UnimplementedStorageServer
+	conn *grpc.ClientConn
 }
 
 func NewStorage(config *toml.Tree) (s *Storage, err error) {
@@ -31,10 +35,9 @@ func NewStorage(config *toml.Tree) (s *Storage, err error) {
 		storeHost:  config.Get("store.host").(string),
 		storePort:  int(config.Get("store.port").(int64)),
 		storeDir:   config.Get("store.dir").(string),
-		password:   config.Get("general.password").(string),
-		directory:  nil,
 		apiServer:  http.NewServeMux(),
 	}
+	s.conn, err = grpc.Dial(fmt.Sprintf("%s:%d", s.masterHost, s.masterPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	s.directory, err = directory.NewLeveldbDirectory(s.storeDir)
 	if err != nil {
 		return nil, err
@@ -49,39 +52,32 @@ func NewStorage(config *toml.Tree) (s *Storage, err error) {
 
 func (s *Storage) Start() {
 	go s.heartbeat()
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.storeHost, s.storePort), s.apiServer)
-	if err != nil {
-		panic(err)
-	}
+	//err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.storeHost, s.storePort), s.apiServer)
+	//if err != nil {
+	//	panic(err)
+	//}
 }
 func (s *Storage) heartbeat() {
-	url := fmt.Sprintf("http://%s:%d/Monitor", s.masterHost, s.masterPort)
+	c := master_pb.NewMasterClient(s.conn)
 	tick := time.NewTicker(HeartBeatInterval)
 	defer tick.Stop()
 	for {
-		ss := &Status{
-			ApiHost:           s.storeHost,
-			ApiPort:           s.storePort,
-			VolumeStatusList:  make([]*volume.Status, 0, len(s.directory.GetVolumeMap())),
-			LastHeartbeatTime: time.Now(),
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ss := &master_pb.StorageStatus{
+			Url:          fmt.Sprintf("%s:%d", s.storeHost, s.storePort),
+			LastBeatTime: timestamppb.Now(),
+
+			VolumeStatusList: make([]*master_pb.VolumeStatus, 0, len(s.directory.GetVolumeMap())),
 		}
 		for id, v := range s.directory.GetVolumeMap() {
-			ss.VolumeStatusList = append(ss.VolumeStatusList, &volume.Status{
-				ApiHost:     ss.ApiHost,
-				ApiPort:     ss.ApiPort,
-				ID:          id,
+			ss.VolumeStatusList = append(ss.VolumeStatusList, &master_pb.VolumeStatus{
+				Url:         fmt.Sprintf("%s:%d", s.storeHost, s.storePort),
+				Id:          id,
 				CurrentSize: v.CurrentOffset,
-				//Writable: false,
 			})
 		}
-		body, _ := json.Marshal(ss)
-		req, _ := http.NewRequest("POST", url, bytes.NewReader(body))
-		req.Header.Set("password", s.password)
-		resp, _ := http.DefaultClient.Do(req)
-		if resp != nil {
-			resp.Body.Close()
-		}
-
+		_, _ = c.Heartbeat(ctx, ss)
+		cancel()
 		<-tick.C
 	}
 
