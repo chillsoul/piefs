@@ -1,44 +1,31 @@
 syntax="proto3";
-option go_package="/protobuf/storage";
-
+option go_package="/protobuf/storage_pb";
+package storage_pb;
 service Storage{
-  rpc CreatVolume(CreatVolumeRequest) returns(CreatVolumeResponse){}
-  rpc ReadNeedleBlob(ReadNeedleBlobRequest) returns(stream ReadNeedleBlobResponse){}
-  rpc WriteNeedleBlob(stream WriteNeedleBlobRequest) returns(WriteNeedleBlobResponse){}
+  rpc CreateVolume(CreatVolumeRequest) returns(CreatVolumeResponse){}
+  rpc WriteNeedleBlob(WriteNeedleBlobRequest) returns(WriteNeedleBlobResponse){}
   rpc DeleteNeedleBlob(DeleteNeedleBlobRequest)returns(DeleteNeedleBlobResponse){}
 }
 message CreatVolumeRequest{
-  uint64 id=1;
-}
-enum status{
-  success=0;
-  failure=1;
-}
-message CreatVolumeResponse{
-  status code=1;
-  string message=2;
-}
-message ReadNeedleBlobRequest{
   uint64 volume_id=1;
-  uint64 needle_id=2;
 }
-message ReadNeedleBlobResponse{
-  bytes needle_chunk=1;
+
+message CreatVolumeResponse{
+
 }
 message WriteNeedleBlobRequest{
   uint64 volume_id=1;
   uint64 needle_id=2;
-  bytes needle_chunk=3;
+  string file_ext=3;
+  bytes needle_data=4;
 }
 message WriteNeedleBlobResponse{
-  status code=1;
-  string message=2;
+
 }
 message DeleteNeedleBlobRequest{
   uint64 volume_id=1;
   uint64 needle_id=2;
 }
 message DeleteNeedleBlobResponse{
-  status code=1;
-  string message=2;
+
 }

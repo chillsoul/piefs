@@ -12,27 +12,7 @@ import (
 	"strconv"
 )
 
-func (s *Storage) AddVolume(w http.ResponseWriter, r *http.Request) {
-	var (
-		ok  bool
-		err error
-		vid uint64
-	)
-	if !util.IsMethodAllowed(w, r, "POST") {
-		return
-	}
-	if ok, vid = util.GetVidFromFormValue(w, r); !ok {
-		return
-	}
-	if err = s.directory.NewVolume(vid); err != nil {
-		http.Error(w, fmt.Sprintf("create new volume for vid %s in dir %s error(%v)", r.FormValue("vid"), s.storeDir, err),
-			http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusCreated)
-	return
-}
-func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request) {
+func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	var (
 		ok  bool
 		err error
@@ -63,7 +43,7 @@ func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (s *Storage) DelNeedle(w http.ResponseWriter, r *http.Request) {
+func (s *Storage) DelNeedle(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	var (
 		ok  bool
 		err error
@@ -82,7 +62,7 @@ func (s *Storage) DelNeedle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Read Needle data error %v", err), http.StatusInternalServerError)
 	}
 }
-func (s *Storage) PutNeedle(w http.ResponseWriter, r *http.Request) {
+func (s *Storage) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	var (
 		ok  bool
 		err error

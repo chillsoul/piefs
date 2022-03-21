@@ -4,7 +4,7 @@
 // - protoc             v3.19.4
 // source: protobuf/master.proto
 
-package master
+package master_pb
 
 import (
 	context "context"
@@ -35,7 +35,7 @@ func NewMasterClient(cc grpc.ClientConnInterface) MasterClient {
 
 func (c *masterClient) Heartbeat(ctx context.Context, in *StorageStatus, opts ...grpc.CallOption) (*HeartbeatResponse, error) {
 	out := new(HeartbeatResponse)
-	err := c.cc.Invoke(ctx, "/Master/Heartbeat", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/master_pb.Master/Heartbeat", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func _Master_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Master/Heartbeat",
+		FullMethod: "/master_pb.Master/Heartbeat",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MasterServer).Heartbeat(ctx, req.(*StorageStatus))
@@ -92,7 +92,7 @@ func _Master_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(in
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Master_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Master",
+	ServiceName: "master_pb.Master",
 	HandlerType: (*MasterServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

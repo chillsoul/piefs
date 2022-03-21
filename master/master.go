@@ -1,14 +1,18 @@
 package master
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pelletier/go-toml"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"log"
 	"math/rand"
-	"net"
 	"net/http"
-	master_pb "piefs/protobuf/master"
+	"piefs/protobuf/master_pb"
+	"piefs/protobuf/storage_pb"
 	"piefs/storage"
 	"piefs/storage/volume"
 	"piefs/util"
@@ -22,9 +26,9 @@ type Master struct {
 	replica             int
 	storageStatusList   []*master_pb.StorageStatus
 	volumeStatusListMap map[uint64][]*master_pb.VolumeStatus
-	apiServer           *http.ServeMux
-	statusLock          sync.RWMutex //volume and storage status statusLock
-	conn                map[string]*grpc.ClientConn
+	//apiServer           *http.ServeMux
+	statusLock sync.RWMutex //volume and storage status statusLock
+	//conn       map[string]*grpc.ClientConn
 	master_pb.UnimplementedMasterServer
 }
 
@@ -39,7 +43,7 @@ func NewMaster(config *toml.Tree) (m *Master, err error) {
 		replica:             int(config.Get("general.replica").(int64)),
 		storageStatusList:   make([]*master_pb.StorageStatus, 0),
 		volumeStatusListMap: make(map[uint64][]*master_pb.VolumeStatus),
-		apiServer:           http.NewServeMux(),
+		//apiServer:           http.NewServeMux(),
 	}
 	//m.apiServer.HandleFunc("/Monitor", m.Monitor)
 	//m.apiServer.HandleFunc("/GetNeedle", m.GetNeedle)
@@ -49,14 +53,16 @@ func NewMaster(config *toml.Tree) (m *Master, err error) {
 
 func (m *Master) Start() {
 	go m.checkStorageStatus()
-	//err := http.ListenAndServe(fmt.Sprintf("%s:%d", m.masterHost, m.masterPort), m.apiServer)
-	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", m.masterPort))
+	grpcServer := grpc.NewServer()
+	mux := http.NewServeMux()
+	gwmux := runtime.NewServeMux()
+	master_pb.RegisterMasterServer(grpcServer, m)
+	gwmux.HandlePath("POST", "/GetNeedle", m.GetNeedle)
+	gwmux.HandlePath("POST", "/PutNeedle", m.PutNeedle)
+	mux.Handle("/", gwmux)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", m.masterHost, m.masterPort), util.GRPCHandlerFunc(grpcServer, mux))
+	//listen, err := net.Listen("tcp", fmt.Sprintf(":%d", m.masterPort))
 	if err != nil {
-		panic(err)
-	}
-	s := grpc.NewServer()
-	master_pb.RegisterMasterServer(s, m)
-	if err := s.Serve(listen); err != nil {
 		panic(err)
 	}
 }
@@ -138,12 +144,15 @@ func (m *Master) addVolume() (err error) {
 	uuid := util.UniqueId()
 	for i := 0; i < m.replica; i++ {
 		storageStatus := m.storageStatusList[p[i]]
-		url := fmt.Sprintf("http://%s/AddVolume?vid=%d", storageStatus.Url, uuid)
-		req, _ := http.NewRequest("POST", url, nil)
-		resp, _ := http.DefaultClient.Do(req)
-		if resp != nil {
-			resp.Body.Close()
+		conn, _ := grpc.Dial(storageStatus.Url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		client := storage_pb.NewStorageClient(conn)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		_, err = client.CreateVolume(ctx, &storage_pb.CreatVolumeRequest{VolumeId: uuid})
+		if err != nil {
+			log.Printf("%s create volume error: %s\n", storageStatus.Url, err.Error())
 		}
+		conn.Close()
+		cancel()
 	}
 	return
 }

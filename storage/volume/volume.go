@@ -88,11 +88,11 @@ func (v *Volume) allocSpace(fileBodySize uint64, fileExtSize uint64) (offset uin
 	return
 }
 
-// NewNeedle
+// newNeedle
 // 1. alloc space
 // 2. set needle's header
 // 3. create meta info
-func (v *Volume) NewNeedle(id uint64, fileSize uint64, fileExt string) (n *Needle, err error) {
+func (v *Volume) newNeedle(id uint64, fileSize uint64, fileExt string) (n *Needle, err error) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
@@ -126,7 +126,7 @@ func (v *Volume) NewNeedle(id uint64, fileSize uint64, fileExt string) (n *Needl
 	return n, err
 }
 func (v *Volume) NewFile(id uint64, data []byte, fileExt string) (needle *Needle, err error) {
-	needle, err = v.NewNeedle(id, uint64(len(data)), fileExt)
+	needle, err = v.newNeedle(id, uint64(len(data)), fileExt)
 
 	if err != nil {
 		return nil, fmt.Errorf("new needle : %v", err)

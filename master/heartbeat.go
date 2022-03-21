@@ -3,25 +3,25 @@ package master
 import (
 	"context"
 	"log"
-	master_pb "piefs/protobuf/master"
+	"piefs/protobuf/master_pb"
 )
 
-func (m *Master) Heartbeat(ctx context.Context, status *master_pb.StorageStatus) (*master_pb.HeartbeatResponse, error) {
-	log.Printf("Received: %v", status.GetUrl())
+func (m *Master) Heartbeat(ctx context.Context, ss *master_pb.StorageStatus) (*master_pb.HeartbeatResponse, error) {
+	log.Printf("Received: %v", ss.GetUrl())
 	m.statusLock.Lock()
 	defer m.statusLock.Unlock()
 	flag := false
 	for i := 0; i < len(m.storageStatusList); i++ {
-		//update storage status
-		if m.storageStatusList[i].Url == status.Url {
-			m.storageStatusList[i] = status
+		//update storage ss
+		if m.storageStatusList[i].Url == ss.Url {
+			m.storageStatusList[i] = ss
 			flag = true
 		}
 	}
 	if !flag { //first heartbeat
-		m.storageStatusList = append(m.storageStatusList, status)
+		m.storageStatusList = append(m.storageStatusList, ss)
 	}
-	for _, vs := range status.VolumeStatusList {
+	for _, vs := range ss.VolumeStatusList {
 		flag = false
 		vsList := m.volumeStatusListMap[vs.Id]
 		if vsList == nil { //new volume
@@ -30,7 +30,7 @@ func (m *Master) Heartbeat(ctx context.Context, status *master_pb.StorageStatus)
 		}
 		for i, vs_ := range vsList {
 			if vs_.Url == vs.Url {
-				m.volumeStatusListMap[vs.Id][i] = vs //update volume status
+				m.volumeStatusListMap[vs.Id][i] = vs //update volume ss
 				flag = true
 			}
 		}
@@ -38,5 +38,5 @@ func (m *Master) Heartbeat(ctx context.Context, status *master_pb.StorageStatus)
 			m.volumeStatusListMap[vs.Id] = append(m.volumeStatusListMap[vs.Id], vs)
 		}
 	}
-	return &master_pb.HeartbeatResponse{Code: master_pb.Status_SUCCESS}, nil
+	return &master_pb.HeartbeatResponse{}, nil
 }
