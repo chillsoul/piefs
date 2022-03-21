@@ -5,17 +5,16 @@ A simple file system based on [Facebook Haystack Paper](https://www.usenix.org/l
 Only for learning, **NOT RECOMMEND** to use for production environment (see [SeaweedFS](https://github.com/chrislusf/seaweedfs) instead).
 
 ---
-### Planning
-Planning to refactor architecture. May use gRPC or go-micro, etc., to make this system more simple, Especially HTTP part.
 
-### TODO List(before)
+### TODO List
 - Master
     - [ ] Web UI
-    - [x] Heartbeat Monitor
     - HTTP API
-      - [x] Get needle physical URL
-      - [x] Upload and Hand off needle
-      - [ ] Delete needle
+      - [x] Put Needle
+      - [ ] Get Needle
+    - gRPC Service
+      - [x] Heartbeat
+      - [ ] Delete Needle
 - Storage
   - [ ] Cache
   - [x] Directory
@@ -24,10 +23,11 @@ Planning to refactor architecture. May use gRPC or go-micro, etc., to make this 
   - [x] Needle
   - [x] Heartbeat
   - HTTP API
-    - [x] Add volume
-    - [x] Get needle
-    - [x] Put needle
-    - [x] Delete needle
+    - [ ] Get Needle
+  - gRPC Service
+    - [x] Add Volume
+    - [x] Put Needle
+    - [ ] Delete Needle
 ---
 
 ## Document
