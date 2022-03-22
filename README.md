@@ -114,7 +114,7 @@ Then the master will auto redirect you to physical file URL.
 > curl -d 'vid=1647868700846810400&nid=1647920354875133400' 'localhost:8080/DelNeedle'
 success
 ```
-Only delete this record from directory db.It will be physically delete when compaction operation start.
+Only delete this record from directory db.It will be physically deleted when compaction operation start.
 
 ## Reference
 
