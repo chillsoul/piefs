@@ -33,6 +33,10 @@ func (s *Storage) WriteNeedleBlob(ctx context.Context, request *storage_pb.Write
 	if err != nil {
 		return emptyWriteNeedleBlobResponse, status.Error(codes.Internal, err.Error())
 	}
+	err = s.cache.SetNeedle(request.VolumeId, request.NeedleId, needle)
+	if err != nil {
+		return emptyWriteNeedleBlobResponse, status.Error(codes.Internal, err.Error())
+	}
 	return emptyWriteNeedleBlobResponse, nil
 }
 
@@ -42,6 +46,10 @@ func (s *Storage) DeleteNeedleBlob(ctx context.Context, request *storage_pb.Dele
 	}
 	if err := s.directory.Del(request.VolumeId, request.NeedleId); err != nil {
 		return emptyDeleteNeedleBlobResponse, status.Errorf(codes.Internal, err.Error())
+	}
+	err := s.cache.DelNeedle(request.VolumeId, request.NeedleId)
+	if err != nil {
+		return emptyDeleteNeedleBlobResponse, status.Error(codes.Internal, err.Error())
 	}
 	return emptyDeleteNeedleBlobResponse, nil
 }

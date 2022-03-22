@@ -22,10 +22,22 @@ func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request, _ map[string
 	if ok, vid, nid = util.GetVidNidFromFormValue(w, r); !ok {
 		return
 	}
-	n, err = s.directory.Get(vid, nid)
+	n, err = s.cache.GetNeedle(vid, nid)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Get Needle of nid %d of volume vid %d error %v", nid, vid, err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Get Cache Needle of nid %d of volume vid %d error %v", nid, vid, err), http.StatusBadRequest)
 		return
+	}
+	if n == nil {
+		n, err = s.directory.Get(vid, nid)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Get Needle of nid %d of volume vid %d error %v", nid, vid, err), http.StatusBadRequest)
+			return
+		}
+		err = s.cache.SetNeedle(vid, nid, n)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Set Needle of nid %d of volume vid %d error %v", nid, vid, err), http.StatusBadRequest)
+			return
+		}
 	}
 	n.File = s.directory.GetVolumeMap()[vid].File
 	w.Header().Set("Content-Type", getContentType(n.FileExt))

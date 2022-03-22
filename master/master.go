@@ -39,7 +39,7 @@ func NewMaster(config *toml.Tree) (m *Master, err error) {
 	m = &Master{
 		masterHost:          config.Get("master.host").(string),
 		masterPort:          int(config.Get("master.port").(int64)),
-		replica:             int(config.Get("general.replica").(int64)),
+		replica:             int(config.Get("master.replica").(int64)),
 		storageStatusList:   make([]*master_pb.StorageStatus, 0),
 		volumeStatusListMap: make(map[uint64][]*master_pb.VolumeStatus),
 	}

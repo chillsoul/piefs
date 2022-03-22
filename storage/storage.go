@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"piefs/protobuf/master_pb"
 	"piefs/protobuf/storage_pb"
+	"piefs/storage/cache"
 	"piefs/storage/directory"
 	"piefs/util"
 	"time"
@@ -26,7 +27,8 @@ type Storage struct {
 	storeDir   string
 	directory  directory.Directory
 	storage_pb.UnimplementedStorageServer
-	conn *grpc.ClientConn
+	cache *cache.NeedleCache
+	conn  *grpc.ClientConn
 }
 
 func NewStorage(config *toml.Tree) (s *Storage, err error) {
@@ -37,7 +39,14 @@ func NewStorage(config *toml.Tree) (s *Storage, err error) {
 		storePort:  int(config.Get("store.port").(int64)),
 		storeDir:   config.Get("store.dir").(string),
 	}
+	s.cache, err = cache.NewNeedleCache(config)
+	if err != nil {
+		return nil, err
+	}
 	s.conn, err = grpc.Dial(fmt.Sprintf("%s:%d", s.masterHost, s.masterPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
 	s.directory, err = directory.NewLeveldbDirectory(s.storeDir)
 	if err != nil {
 		return nil, err

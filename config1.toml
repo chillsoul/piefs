@@ -8,8 +8,8 @@ port=8080
 replica=2
 [store]
 host="127.0.0.1"
-port=9091
-dir="_storage_9091"
+port=9090
+dir="_storage_9090"
 [cache]
 #Number of keys to track frequency.
 num_counters=10000000

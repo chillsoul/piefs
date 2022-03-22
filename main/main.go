@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	config, err := toml.LoadFile("./config.toml")
+	config, err := toml.LoadFile("./config1.toml")
 	config2, err := toml.LoadFile("./config2.toml")
 	s1, err := storage.NewStorage(config)
 	if err != nil {
