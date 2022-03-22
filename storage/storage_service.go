@@ -37,6 +37,9 @@ func (s *Storage) WriteNeedleBlob(ctx context.Context, request *storage_pb.Write
 }
 
 func (s *Storage) DeleteNeedleBlob(ctx context.Context, request *storage_pb.DeleteNeedleBlobRequest) (*storage_pb.DeleteNeedleBlobResponse, error) {
+	if has := s.directory.Has(request.VolumeId, request.NeedleId); !has {
+		return emptyDeleteNeedleBlobResponse, status.Errorf(codes.NotFound, "needle not found")
+	}
 	if err := s.directory.Del(request.VolumeId, request.NeedleId); err != nil {
 		return emptyDeleteNeedleBlobResponse, status.Errorf(codes.Internal, err.Error())
 	}

@@ -130,4 +130,9 @@ func (m *Master) DelNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 
 		}(vStatus)
 	}
+	wg.Wait()
+	if len(deleteErr) != 0 {
+		http.Error(w, strings.Join(deleteErr, "\n"), http.StatusInternalServerError)
+		return
+	}
 }

@@ -37,7 +37,7 @@ sequenceDiagram
 autonumber
     note over Client,Master:gRPC-gateway
     note over Master,Storage:gRPC
-    Client->>+Master: Get/Put Needle HTTP Request
+    Client->>+Master: Get/Put/Del Needle HTTP Request
     Master->>+Storage: RPC Request
     Storage-->>-Master: RPC Response
     Master-->>-Client: HTTP Response
@@ -46,10 +46,33 @@ autonumber
 
 ### Directory
 
+```mermaid
+classDiagram
+class Directory{
+<<interface>>
+no fields
++Get()
++Set()
++Has()
++Del()
++GetVolumeMap()
+}
+```
+
 A directory use Key-Value database (LevelDB now) to store the mapping relationship of one volume between needle id and needle metadata (map[vid]LevelDB<nid,n metadata> in short). 
 
 ### Volume
-
+```mermaid
+classDiagram
+class Volume{
+<<physical file struct>>
+Current Index
+Needle 1(offset 8,size x)
+Needle 2(offset 8+x,size y)
+.......(offset m,size n)
+(End of file)
+}
+```
 Each Volume file's first 8 bytes is its current offset, which means storage server can store data from here.
 
 ### Needle
@@ -57,13 +80,13 @@ Each Volume file's first 8 bytes is its current offset, which means storage serv
 ```mermaid
 classDiagram
 class Needle{
-	-ID : uint64
-    -Size : uint64
-    -Offset : uint64
-    -FileExt : string
-    -UploadTime : time.Time
+	+ID : uint64
+    +Size : uint64
+    +Offset : uint64
+    +FileExt : string
+    +UploadTime : time.Time
     -currentIndex : uint64
-    -File : *os.File
+    +File : *os.File
 }
 ```
 The `currentIndex` is used for implementing `Reader` and `Writer` interfaces.
