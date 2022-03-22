@@ -8,9 +8,9 @@ import (
 )
 
 func main() {
-	config, err := toml.LoadFile("./config1.toml")
+	config1, err := toml.LoadFile("./config1.toml")
 	config2, err := toml.LoadFile("./config2.toml")
-	s1, err := storage.NewStorage(config)
+	s1, err := storage.NewStorage(config1)
 	if err != nil {
 		fmt.Println("error new storage:", err)
 		return
@@ -20,7 +20,7 @@ func main() {
 		fmt.Println("error new storage:", err)
 		return
 	}
-	m, err := master.NewMaster(config)
+	m, err := master.NewMaster(config1)
 	if err != nil {
 		fmt.Println("error new master:", err)
 		return

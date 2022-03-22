@@ -1,8 +1,12 @@
 # Pie File System
 
-A simple file system based on [Facebook Haystack Paper](https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf).
+A simple **massive small file** storage system based on [Facebook Haystack Paper](https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf).
 
 Only for learning, **NOT RECOMMEND** to use for production environment (see [SeaweedFS](https://github.com/chrislusf/seaweedfs) instead).
+
+### Why named 'Pie'?
+
+Just like 'Finding a needle in Haystack', which is facebook's photo storage, a pie is a baked dish that contains a filling of various sweet or savoury ingredients (small files here).
 
 ---
 
