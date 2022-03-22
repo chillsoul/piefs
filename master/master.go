@@ -67,7 +67,7 @@ func (m *Master) checkStorageStatus() {
 	for {
 		m.statusLock.Lock()
 		for index, ss := range m.storageStatusList {
-			if time.Since(ss.LastBeatTime.AsTime()) > storage.HeartBeatInterval*999 {
+			if time.Since(ss.LastBeatTime.AsTime()) > storage.HeartBeatInterval*2 {
 				//ss.Alive = false
 				for _, vs := range ss.VolumeStatusList { //for volumeStatus.ID
 					if len(m.volumeStatusListMap[vs.Id]) == 1 { //only 1 storage has this volume
@@ -82,7 +82,8 @@ func (m *Master) checkStorageStatus() {
 					}
 				}
 				m.storageStatusList = append(m.storageStatusList[:index], m.storageStatusList[index+1:]...)
-				fmt.Printf("storage %s offline, last heartbeat at %s \n", ss.Url, ss.LastBeatTime)
+				index -= 1 //current elem is deleted,so the next element's index is also i
+				log.Printf("%s offline, last heartbeat at %s \n", ss.Url, ss.LastBeatTime)
 			}
 		}
 		m.statusLock.Unlock()
