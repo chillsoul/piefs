@@ -11,10 +11,10 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
     - [ ] Web UI
     - HTTP API
       - [x] Put Needle
-      - [ ] Get Needle
+      - [x] Get Needle
     - gRPC Service
       - [x] Heartbeat
-      - [ ] Delete Needle
+      - [x] Delete Needle
 - Storage
   - [ ] Cache
   - [x] Directory
@@ -23,14 +23,26 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
   - [x] Needle
   - [x] Heartbeat
   - HTTP API
-    - [ ] Get Needle
+    - [x] Get Needle
   - gRPC Service
     - [x] Add Volume
     - [x] Put Needle
-    - [ ] Delete Needle
+    - [x] Delete Needle
 ---
 
 ## Document
+### Outline design
+```mermaid
+sequenceDiagram
+autonumber
+    note over Client,Master:gRPC-gateway
+    note over Master,Storage:gRPC
+    Client->>+Master: Get/Put Needle HTTP Request
+    Master->>+Storage: RPC Request
+    Storage-->>-Master: RPC Response
+    Master-->>-Client: HTTP Response
+
+```
 
 ### Directory
 
@@ -42,21 +54,18 @@ Each Volume file's first 8 bytes is its current offset, which means storage serv
 
 ### Needle
 
-```go
-// piefs/storage/needle/needle.go
-type Needle struct {
-	ID           uint64    //unique ID 64bits; stored
-	Size         uint64    //size of body 64bits; stored
-	Offset       uint64    //offset of body 64bits; stored
-	FileExt      string    //file extension; stored
-	UploadTime   time.Time //upload time; stored
-	File         *os.File  //volume file; memory only
-	currentIndex uint64    //current index for IO read and write
+```mermaid
+classDiagram
+class Needle{
+	-ID : uint64
+    -Size : uint64
+    -Offset : uint64
+    -FileExt : string
+    -UploadTime : time.Time
+    -currentIndex : uint64
+    -File : *os.File
 }
 ```
-
-The fields which be commented with 'stored' means it's a needle's metadata, and these will be stored in physical volume file before needle data as a header.
-
 The `currentIndex` is used for implementing `Reader` and `Writer` interfaces.
 
 ## Reference
