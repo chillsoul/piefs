@@ -37,13 +37,20 @@ sequenceDiagram
 autonumber
     note over Client,Master:gRPC-gateway
     note over Master,Storage:gRPC
-    Client->>+Master: Get/Put/Del Needle HTTP Request
+    Client->>+Master: Put/Del Needle HTTP Request
     Master->>+Storage: RPC Request
     Storage-->>-Master: RPC Response
     Master-->>-Client: HTTP Response
-
 ```
-
+```mermaid
+sequenceDiagram
+autonumber
+    Client->>+Master: Get Needle HTTP Request
+    Master-->>-Client:Redirect to someone Storage
+    note over Master,Client: Redirect can be omitted if Storage URL is known
+    Client->>+Storage: Get Neelde HTTP Request
+    Storage-->>-Client: Response
+```
 ### Directory
 
 ```mermaid
