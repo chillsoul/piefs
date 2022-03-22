@@ -105,8 +105,16 @@ func (m *Master) hasSafeFreeSpace() bool {
 func (m *Master) getWritableVolumes(size uint64) ([]*master_pb.VolumeStatus, error) {
 	m.statusLock.RLock()
 	defer m.statusLock.RUnlock()
-	//TODO: 真随机迭代，根据map的底层设计，目前有较大概率选中第一个卷
-	for _, vsList := range m.volumeStatusListMap {
+	//Random load balancing
+	keys := make([]uint64, len(m.volumeStatusListMap))
+	i := 0
+	for u := range m.volumeStatusListMap {
+		keys[i] = u
+		i++
+	}
+	randInt := rand.Perm(len(m.volumeStatusListMap))
+	for _, i := range randInt {
+		vsList := m.volumeStatusListMap[keys[i]]
 		if IsWritable(vsList[0]) && HasEnoughSpace(vsList[0], size) && len(vsList) >= m.replica {
 			return vsList, nil
 		}
