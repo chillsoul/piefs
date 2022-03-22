@@ -91,7 +91,7 @@ func (m *Master) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	result := []byte(fmt.Sprintf("{'vid':%d,\n'nid':%d}", vsList[0].Id, nid))
+	result := []byte(fmt.Sprintf("{\"vid\":%d,\"nid\":%d}", vsList[0].Id, nid))
 	w.Write(result)
 }
 func (m *Master) DelNeedle(w http.ResponseWriter, r *http.Request, _ map[string]string) {
@@ -135,4 +135,5 @@ func (m *Master) DelNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 		http.Error(w, strings.Join(deleteErr, "\n"), http.StatusInternalServerError)
 		return
 	}
+	w.Write([]byte("success"))
 }

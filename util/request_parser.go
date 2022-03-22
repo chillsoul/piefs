@@ -20,7 +20,7 @@ func GetVidNidFromFormValue(w http.ResponseWriter, r *http.Request) (ok bool, vi
 		return false, 0, 0
 	}
 	if nid, err = strconv.ParseUint(r.FormValue("nid"), 10, 64); err != nil {
-		http.Error(w, fmt.Sprintf("strconv.ParseInt(\"%s\") error(%v)", r.FormValue("vid"), err), http.StatusNotFound)
+		http.Error(w, fmt.Sprintf("strconv.ParseInt(\"%s\") error(%v)", r.FormValue("nid"), err), http.StatusBadRequest)
 		return false, 0, 0
 	}
 	return true, vid, nid

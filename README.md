@@ -90,6 +90,24 @@ class Needle{
 }
 ```
 The `currentIndex` is used for implementing `Reader` and `Writer` interfaces.
+### Usage
+```shell
+#Upload File By Master
+> curl -F 'file=@./resources/test/gofactory.jpg' 'localhost:8080/PutNeedle'
+{"vid":1647868700846810400,"nid":1647920354875133400}
+```
+The master will auto hand off this file to several storage servers for replication.
+```shell
+#Get File By Master
+GET localhost:8080/GetNeedle?vid=1647868700846810400&nid=1647920354875133400
+```
+Then the master will auto redirect you to physical file URL.
+```shell
+#Delete File By Master
+> curl -d 'vid=1647868700846810400&nid=1647920354875133400' 'localhost:8080/DelNeedle'
+success
+```
+Only delete this record from directory db.It will be physically delete when compaction operation start.
 
 ## Reference
 
