@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"path"
 	"piefs/protobuf/master_pb"
 	"piefs/protobuf/storage_pb"
 	"piefs/util"
@@ -76,6 +77,7 @@ func (m *Master) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 				VolumeId:   vs.Id,
 				NeedleId:   nid,
 				NeedleData: data,
+				FileExt:    path.Ext(header.Filename),
 			})
 			if err != nil {
 				uploadErr = append(uploadErr, fmt.Sprintf("storage: %s  error: %s", vs.Url, err))
@@ -91,5 +93,41 @@ func (m *Master) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 	w.WriteHeader(http.StatusCreated)
 	result := []byte(fmt.Sprintf("{'vid':%d,\n'nid':%d}", vsList[0].Id, nid))
 	w.Write(result)
-	//space check
+}
+func (m *Master) DelNeedle(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	var (
+		ok  bool
+		vid uint64
+		nid uint64
+	)
+	if ok, vid, nid = util.GetVidNidFromFormValue(w, r); !ok {
+		return
+	}
+	vsList := m.volumeStatusListMap[vid]
+	if vsList == nil {
+		http.Error(w, "volume not found", http.StatusNotFound)
+		return
+	}
+	wg := sync.WaitGroup{}
+	var deleteErr []string
+	for _, vStatus := range vsList {
+		wg.Add(1)
+		go func(vs *master_pb.VolumeStatus) {
+			defer wg.Done()
+			//给该vid对应的所有volume删除文件
+			conn, err := grpc.Dial(vs.Url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			defer conn.Close()
+			client := storage_pb.NewStorageClient(conn)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			_, err = client.DeleteNeedleBlob(ctx, &storage_pb.DeleteNeedleBlobRequest{
+				VolumeId: vs.Id,
+				NeedleId: nid,
+			})
+			if err != nil {
+				deleteErr = append(deleteErr, fmt.Sprintf("storage: %s  error: %s", vs.Url, err))
+			}
+
+		}(vStatus)
+	}
 }

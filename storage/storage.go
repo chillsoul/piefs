@@ -52,7 +52,7 @@ func (s *Storage) Start() {
 	mux := http.NewServeMux()
 	gwmux := runtime.NewServeMux()
 	storage_pb.RegisterStorageServer(grpcServer, s)
-	gwmux.HandlePath("POST", "/GetNeedle", s.GetNeedle)
+	gwmux.HandlePath("GET", "/GetNeedle", s.GetNeedle)
 	mux.Handle("/", gwmux)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", s.storePort), util.GRPCHandlerFunc(grpcServer, mux))
 	if err != nil {

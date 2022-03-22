@@ -3,10 +3,8 @@ package storage
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime"
 	"net/http"
-	"path"
 	"piefs/storage/needle"
 	"piefs/util"
 	"strconv"
@@ -21,9 +19,6 @@ func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request, _ map[string
 		n   *needle.Needle
 	)
 	//request check
-	if !util.IsMethodAllowed(w, r, "GET") {
-		return
-	}
 	if ok, vid, nid = util.GetVidNidFromFormValue(w, r); !ok {
 		return
 	}
@@ -43,71 +38,7 @@ func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request, _ map[string
 		return
 	}
 }
-func (s *Storage) DelNeedle(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-	var (
-		ok  bool
-		err error
-		vid uint64
-		nid uint64
-	)
 
-	if !util.IsMethodAllowed(w, r, "POST") {
-		return
-	}
-	if ok, vid, nid = util.GetVidNidFromFormValue(w, r); !ok {
-		return
-	}
-	err = s.directory.Del(vid, nid)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Read Needle data error %v", err), http.StatusInternalServerError)
-	}
-}
-func (s *Storage) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-	var (
-		ok  bool
-		err error
-		vid uint64
-		nid uint64
-	)
-
-	if !util.IsMethodAllowed(w, r, "POST") {
-		return
-	}
-	if ok, vid, nid = util.GetVidNidFromFormValue(w, r); !ok {
-		return
-	}
-	v := s.directory.GetVolumeMap()[vid]
-	if v == nil {
-		http.Error(w, "can't find volume", http.StatusNotFound)
-		return
-	}
-	file, header, err := r.FormFile("file")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer file.Close()
-	r.Body = http.MaxBytesReader(w, r.Body, 1<<20+1<<19) //1.5MB
-
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	n, err := v.NewFile(nid, data, path.Ext(header.Filename))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	err = s.directory.Set(vid, nid, n)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-}
 func getContentType(fileExt string) string {
 	contentType := "application/octet-stream"
 	if fileExt != "" && fileExt != "." {

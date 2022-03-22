@@ -26,8 +26,7 @@ type Master struct {
 	replica             int
 	storageStatusList   []*master_pb.StorageStatus
 	volumeStatusListMap map[uint64][]*master_pb.VolumeStatus
-	//apiServer           *http.ServeMux
-	statusLock sync.RWMutex //volume and storage status statusLock
+	statusLock          sync.RWMutex //volume and storage status statusLock
 	//conn       map[string]*grpc.ClientConn
 	master_pb.UnimplementedMasterServer
 }
@@ -43,11 +42,7 @@ func NewMaster(config *toml.Tree) (m *Master, err error) {
 		replica:             int(config.Get("general.replica").(int64)),
 		storageStatusList:   make([]*master_pb.StorageStatus, 0),
 		volumeStatusListMap: make(map[uint64][]*master_pb.VolumeStatus),
-		//apiServer:           http.NewServeMux(),
 	}
-	//m.apiServer.HandleFunc("/Monitor", m.Monitor)
-	//m.apiServer.HandleFunc("/GetNeedle", m.GetNeedle)
-	//m.apiServer.HandleFunc("/PutNeedle", m.HandOutNeedle)
 	return m, err
 }
 
@@ -57,8 +52,9 @@ func (m *Master) Start() {
 	mux := http.NewServeMux()
 	gwmux := runtime.NewServeMux()
 	master_pb.RegisterMasterServer(grpcServer, m)
-	gwmux.HandlePath("POST", "/GetNeedle", m.GetNeedle)
+	gwmux.HandlePath("GET", "/GetNeedle", m.GetNeedle)
 	gwmux.HandlePath("POST", "/PutNeedle", m.PutNeedle)
+	gwmux.HandlePath("POST", "/DelNeedle", m.DelNeedle)
 	mux.Handle("/", gwmux)
 	err := http.ListenAndServe(fmt.Sprintf("%s:%d", m.masterHost, m.masterPort), util.GRPCHandlerFunc(grpcServer, mux))
 	//listen, err := net.Listen("tcp", fmt.Sprintf(":%d", m.masterPort))
