@@ -56,7 +56,7 @@ func (m *Master) Start() {
 	gwmux.HandlePath("POST", "/PutNeedle", m.PutNeedle)
 	gwmux.HandlePath("POST", "/DelNeedle", m.DelNeedle)
 	mux.Handle("/", gwmux)
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", m.masterHost, m.masterPort), util.GRPCHandlerFunc(grpcServer, mux))
+	err := http.ListenAndServe(fmt.Sprintf(":%d", m.masterPort), util.GRPCHandlerFunc(grpcServer, mux))
 	if err != nil {
 		panic(err)
 	}
