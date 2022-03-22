@@ -16,7 +16,7 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
       - [x] Heartbeat
       - [x] Delete Needle
 - Storage
-  - [ ] Cache
+  - [x] Cache
   - [x] Directory
     - [x] LevelDB store file index
   - [x] Volume
