@@ -49,7 +49,7 @@ autonumber
     Master-->>-Client:Redirect to someone Storage
     note over Master,Client: Redirect can be omitted if Storage URL is known
     Client->>+Storage: Get Neelde HTTP Request
-    Storage-->>-Client: Response
+    Storage-->>-Client:HTTP Response
 ```
 ### Directory
 
