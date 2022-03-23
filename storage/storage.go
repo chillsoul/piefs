@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"log"
 	"net/http"
 	"piefs/protobuf/master_pb"
 	"piefs/protobuf/storage_pb"
@@ -39,7 +40,22 @@ func NewStorage(config *toml.Tree) (s *Storage, err error) {
 		storePort:  int(config.Get("store.port").(int64)),
 		storeDir:   config.Get("store.dir").(string),
 	}
-	s.cache, err = cache.NewNeedleCache(config)
+	s.cache, err = cache.NewNeedleCache(config, cache.GetterFunc(
+		func(vid, nid uint64) ([]byte, error) {
+			needle, err := s.directory.Get(vid, nid)
+			if err != nil {
+				log.Printf("%s:%d get nid %d of vid %d failed, %s", s.storeHost, s.storePort, vid, vid, err)
+				return nil, err
+			}
+			needle.File = s.directory.GetVolumeMap()[vid].File
+			data := make([]byte, needle.Size)
+			_, err = needle.Read(data)
+			if err != nil {
+				log.Printf("%s:%d get nid %d of vid %d failed, %s", s.storeHost, s.storePort, vid, vid, err)
+				return nil, err
+			}
+			return data, nil
+		}))
 	if err != nil {
 		return nil, err
 	}

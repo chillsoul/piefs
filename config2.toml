@@ -12,8 +12,8 @@ port=9091
 dir="_storage_9091"
 [cache]
 #Number of keys to track frequency.
-num_counters=10000000
+num_counters=100000
 #Maximum cost of cache.
-max_cost=104857600 #100M
+max_cost=1073741824 #1G
 #Number of keys per Get buffer.
 buffer_items=64

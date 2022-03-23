@@ -66,7 +66,13 @@ func (m *Master) checkStorageStatus() {
 	tick := time.NewTicker(storage.HeartBeatInterval)
 	for {
 		m.statusLock.Lock()
-		for index, ss := range m.storageStatusList {
+		var index = 0
+		var ss *master_pb.StorageStatus
+		for {
+			if len(m.storageStatusList) == 0 {
+				break
+			}
+			ss = m.storageStatusList[index]
 			if time.Since(ss.LastBeatTime.AsTime()) > storage.HeartBeatInterval*2 {
 				//ss.Alive = false
 				for _, vs := range ss.VolumeStatusList { //for volumeStatus.ID
@@ -81,10 +87,19 @@ func (m *Master) checkStorageStatus() {
 						}
 					}
 				}
-				m.storageStatusList = append(m.storageStatusList[:index], m.storageStatusList[index+1:]...)
-				index -= 1 //current elem is deleted,so the next element's index is also i
-				log.Printf("%s offline, last heartbeat at %s \n", ss.Url, ss.LastBeatTime)
+				log.Printf("%s offline, last heartbeat at %s \n", ss.Url, ss.LastBeatTime.AsTime())
+				if index == len(m.storageStatusList)-1 { //it's the last storage
+					m.storageStatusList = m.storageStatusList[:index]
+					break
+				} else {
+					m.storageStatusList = append(m.storageStatusList[:index], m.storageStatusList[index+1:]...)
+					index -= 1 //current elem is deleted,so the next element's index is also i
+				}
 			}
+			if index == len(m.storageStatusList)-1 { //last storage but not offline
+				break
+			}
+			index++
 		}
 		m.statusLock.Unlock()
 		if !m.hasSafeFreeSpace() {
