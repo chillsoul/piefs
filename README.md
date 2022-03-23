@@ -21,8 +21,9 @@ Just like 'Finding a needle in Haystack', which is facebook's photo storage, a p
       - [x] Delete Needle
 - Storage
   - [x] Cache
+    - [x] Singleflight
   - [x] Directory
-    - [x] LevelDB store file index
+    - [x] LevelDB
   - [x] Volume
   - [x] Needle
   - [x] Heartbeat
@@ -36,6 +37,7 @@ Just like 'Finding a needle in Haystack', which is facebook's photo storage, a p
 
 ## Document
 ### Outline design
+#### Upload/Delete Request
 ```mermaid
 sequenceDiagram
 autonumber
@@ -46,6 +48,7 @@ autonumber
     Storage-->>-Master: RPC Response
     Master-->>-Client: HTTP Response
 ```
+#### Get Request
 ```mermaid
 sequenceDiagram
 autonumber
@@ -54,6 +57,20 @@ autonumber
     note over Master,Client: Redirect can be omitted if Storage URL is known
     Client->>+Storage: Get Neelde HTTP Request
     Storage-->>-Client:HTTP Response
+```
+#### Cache Singleflight
+```mermaid
+sequenceDiagram
+autonumber
+    note over Client,NeedleCache:Assume many concurrent request of a discarded cache.
+      Client->>+NeedleCache: go routine 1: I want this cache.
+      NeedleCache->>+Singleflight: Load this data from disk only once.
+      Client->>NeedleCache: go routine 2: I want this cache,too.
+      Client->>NeedleCache: go routine 3: I want this cache,too.
+      note over Client,NeedleCache:......
+      Client->>NeedleCache: go routine n: I want this cache,too.
+    Singleflight-->>-NeedleCache: Here you are.
+    NeedleCache-->>-Client:To all go routine: Here you are.
 ```
 ### Directory
 
