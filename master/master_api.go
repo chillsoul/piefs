@@ -41,7 +41,7 @@ func (m *Master) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 		err error
 		nid uint64
 	)
-
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20+1<<19) //1.5MB
 	file, header, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "r.FromFile: "+err.Error(), http.StatusInternalServerError)
@@ -54,7 +54,7 @@ func (m *Master) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	r.Body = http.MaxBytesReader(w, r.Body, 1<<20+1<<19) //1.5MB
+
 	nid = util.UniqueId()
 	data, err := ioutil.ReadAll(file)
 	if err != nil {
