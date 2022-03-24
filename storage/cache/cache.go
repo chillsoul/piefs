@@ -51,14 +51,18 @@ func (nc *NeedleCache) GetNeedleData(vid, nid uint64) ([]byte, error) {
 	if data, found := nc.c.Get(key); found {
 		return data.([]byte), nil
 	} else if data, err = nc.loader.Do(key, func() (interface{}, error) {
-		return nc.getter.Get(vid, nid)
+		return nc.getFromDisk(vid, nid)
 	}); err == nil {
 		return data.([]byte), nil
 	} else {
 		return nil, err
 	}
 }
-
+func (nc *NeedleCache) getFromDisk(vid, nid uint64) (interface{}, error) {
+	data, err := nc.getter.Get(vid, nid)
+	nc.SetNeedleData(vid, nid, data)
+	return data, err
+}
 func (nc *NeedleCache) SetNeedleData(vid, nid uint64, data []byte) {
 	key := NeedleKey(vid, nid)
 	nc.c.Set(key, data, int64(len(data)))
