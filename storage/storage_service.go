@@ -4,6 +4,7 @@ import (
 	"context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
 	"piefs/protobuf/storage_pb"
 )
 
@@ -17,6 +18,7 @@ func (s *Storage) CreateVolume(ctx context.Context, request *storage_pb.CreatVol
 	if err := s.directory.NewVolume(request.VolumeId); err != nil {
 		return emptyCreateVolumeResponse, status.Errorf(codes.Internal, err.Error())
 	}
+	log.Printf("%s:%d created new volume %d", s.storeHost, s.storePort, request.VolumeId)
 	return emptyCreateVolumeResponse, nil
 }
 
@@ -33,6 +35,7 @@ func (s *Storage) WriteNeedleBlob(ctx context.Context, request *storage_pb.Write
 	if err != nil {
 		return emptyWriteNeedleBlobResponse, status.Error(codes.Internal, err.Error())
 	}
+	log.Printf("%s:%d saved nid %d of vid %d", s.storeHost, s.storePort, request.NeedleId, request.VolumeId)
 	s.cache.SetNeedleData(request.VolumeId, request.NeedleId, request.NeedleData)
 	return emptyWriteNeedleBlobResponse, nil
 }
@@ -45,5 +48,6 @@ func (s *Storage) DeleteNeedleBlob(ctx context.Context, request *storage_pb.Dele
 		return emptyDeleteNeedleBlobResponse, status.Errorf(codes.Internal, err.Error())
 	}
 	s.cache.DelNeedleData(request.VolumeId, request.NeedleId)
+	log.Printf("%s:%d deleted nid %d of vid %d", s.storeHost, s.storePort, request.NeedleId, request.VolumeId)
 	return emptyDeleteNeedleBlobResponse, nil
 }
