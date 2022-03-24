@@ -8,11 +8,10 @@ Only for learning, **NOT RECOMMEND** to use for production environment (see [Sea
 
 Just like 'Finding a needle in Haystack', which is facebook's photo storage, a pie is a baked dish that contains a filling of various sweet or savoury ingredients (small files here).
 
----
+## Document
 
-### TODO List
+### Features
 - Master
-    - [ ] Web UI
     - HTTP API
       - [x] Put Needle
       - [x] Get Needle
@@ -35,8 +34,29 @@ Just like 'Finding a needle in Haystack', which is facebook's photo storage, a p
     - [x] Delete Needle
 ---
 
-## Document
-### Outline design
+### Usage
+
+Edit your config.toml according instruction and just run.
+
+```shell
+#Upload File By Master
+> curl -F 'file=@./resources/test/gofactory.jpg' 'localhost:8080/PutNeedle'
+{"vid":1647868700846810400,"nid":1647920354875133400}
+```
+The master will auto hand off this file to several storage servers for replication.
+```shell
+#Get File By Master
+GET localhost:8080/GetNeedle?vid=1647868700846810400&nid=1647920354875133400
+```
+Then the master will auto redirect you to physical file URL.
+```shell
+#Delete File By Master
+> curl -d 'vid=1647868700846810400&nid=1647920354875133400' 'localhost:8080/DelNeedle'
+success
+```
+Only delete this record from directory db.It will be physically deleted when compaction operation start.
+
+### Outline
 #### Upload/Delete Request
 ```mermaid
 sequenceDiagram
@@ -118,24 +138,6 @@ class Needle{
 }
 ```
 The `currentIndex` is used for implementing `Reader` and `Writer` interfaces.
-### Usage
-```shell
-#Upload File By Master
-> curl -F 'file=@./resources/test/gofactory.jpg' 'localhost:8080/PutNeedle'
-{"vid":1647868700846810400,"nid":1647920354875133400}
-```
-The master will auto hand off this file to several storage servers for replication.
-```shell
-#Get File By Master
-GET localhost:8080/GetNeedle?vid=1647868700846810400&nid=1647920354875133400
-```
-Then the master will auto redirect you to physical file URL.
-```shell
-#Delete File By Master
-> curl -d 'vid=1647868700846810400&nid=1647920354875133400' 'localhost:8080/DelNeedle'
-success
-```
-Only delete this record from directory db.It will be physically deleted when compaction operation start.
 
 ## Reference
 
