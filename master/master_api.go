@@ -68,8 +68,20 @@ func (m *Master) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 		go func(vs *master_pb.VolumeStatus) {
 			defer wg.Done()
 			//给该vid对应的所有volume上传文件
-			conn, err := grpc.Dial(vs.Url, grpc.WithTransportCredentials(insecure.NewCredentials()))
-			defer conn.Close()
+			m.connLock.RLock()
+			if m.conn[vs.Url] == nil {
+				m.connLock.RUnlock()
+				m.connLock.Lock()
+				if m.conn[vs.Url] == nil { //double check
+					m.conn[vs.Url], err = grpc.Dial(vs.Url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+					m.connLock.Unlock()
+				} else {
+					m.connLock.Unlock()
+				}
+			}
+			conn := m.conn[vs.Url]
+			//conn, err := grpc.Dial(vs.Url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			//defer conn.Close()
 			client := storage_pb.NewStorageClient(conn)
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()

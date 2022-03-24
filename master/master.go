@@ -27,7 +27,8 @@ type Master struct {
 	storageStatusList   []*master_pb.StorageStatus
 	volumeStatusListMap map[uint64][]*master_pb.VolumeStatus
 	statusLock          sync.RWMutex //volume and storage status statusLock
-	//conn       map[string]*grpc.ClientConn
+	conn                map[string]*grpc.ClientConn
+	connLock            sync.RWMutex
 	master_pb.UnimplementedMasterServer
 }
 
@@ -42,6 +43,7 @@ func NewMaster(config *toml.Tree) (m *Master, err error) {
 		replica:             int(config.Get("master.replica").(int64)),
 		storageStatusList:   make([]*master_pb.StorageStatus, 0),
 		volumeStatusListMap: make(map[uint64][]*master_pb.VolumeStatus),
+		conn:                make(map[string]*grpc.ClientConn),
 	}
 	return m, err
 }
