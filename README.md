@@ -32,7 +32,7 @@ Just like 'Finding a needle in Haystack', which is facebook's photo storage, a p
     - [x] Add Volume
     - [x] Put Needle
     - [x] Delete Needle
-- Util
+- Utility
   - [x] Snowflake
 ---
 
