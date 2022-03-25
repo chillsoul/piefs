@@ -138,7 +138,43 @@ class Needle{
 }
 ```
 The `currentIndex` is used for implementing `Reader` and `Writer` interfaces.
+### Perfermance
+```
+Test on NVME 3.0 SSD
+=== RUN   TestBenchmark
+upload 100 102400byte file:
 
+concurrent:             12
+time taken:             0.06 seconds
+completed:              100
+failed:                 0
+transferred:            10240000 byte
+request per second:     1756.23
+transferred per second: 171.51 MB 
+
+
+read 100 102400byte file:
+
+concurrent:             12
+time taken:             0.06 seconds
+completed:              100
+failed:                 0
+transferred:            10240000 byte
+request per second:     1619.90
+transferred per second: 158.19 MB 
+
+
+delete 100 102400byte file:
+
+concurrent:             12
+time taken:             0.03 seconds
+completed:              100
+failed:                 0
+transferred:            10240000 byte
+request per second:     3289.73
+transferred per second: 321.26 MB
+--- PASS: TestBenchmark (0.15s)
+```
 ## Reference
 
 This repository references many great project or paper (including but not limited to code and design ideas), especially following:
