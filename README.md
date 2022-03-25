@@ -187,6 +187,8 @@ This repository references many great project or paper (including but not limite
 
 [chrislusf/seaweedfs - Github](https://github.com/chrislusf/seaweedfs)
 
+[Golang implement Snowflake algorithm - CNBlogs](https://www.cnblogs.com/luozhiyun/p/14858240.html)
+
 [hmli/simplefs - Github](https://github.com/hmli/simplefs)
 
 [030io/whalefs - Github](https://github.com/030io/whalefs)
