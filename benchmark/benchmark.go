@@ -11,7 +11,6 @@ import (
 	"math/rand"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"path/filepath"
 	"piefs/util"
 	"sync"
@@ -51,15 +50,13 @@ func Benchmark(masterHost string, masterPort int, concurrent int, num int, size 
 	testFile, _ := ioutil.TempFile("./_tmp_", "")
 	testFile.Truncate(int64(size))
 	io.Copy(testFile, bytes.NewReader(randBytes))
-	testFile.Close()
-	defer os.Remove(testFile.Name())
 
 	for i := 0; i < concurrent; i++ {
 		wg.Add(1)
 		go func(j int) {
 			var err error
 			for b := range loop {
-				needleList[b], err = Upload(masterHost, masterPort, testFile.Name())
+				needleList[b], err = Upload(masterHost, masterPort, testFile.Name(), bytes.NewReader(randBytes))
 				mutex.Lock()
 				if err == nil {
 					uploadResult.completed += 1
@@ -175,10 +172,10 @@ func Benchmark(masterHost string, masterPort int, concurrent int, num int, size 
 	fmt.Printf("failed:                 %d\n", deleteResult.failed)
 	fmt.Printf("transferred:            %d byte\n", deleteResult.completed*int32(size))
 	fmt.Printf("request per second:     %.2f\n", float64(deleteResult.num)/timeTaken)
-	fmt.Printf("transferred per second: %.2f byte\n", float64(deleteResult.completed)*float64(size)/timeTaken)
+	fmt.Printf("transferred per second: %.2f MB\n", float64(deleteResult.completed)*float64(size)/timeTaken/1024/1024)
 
 }
-func Upload(host string, port int, srcFilePath string) (*uploadResponse, error) {
+func Upload(host string, port int, srcFilePath string, reader io.Reader) (*uploadResponse, error) {
 
 	body := new(bytes.Buffer)
 	mPart := multipart.NewWriter(body)
@@ -188,12 +185,7 @@ func Upload(host string, port int, srcFilePath string) (*uploadResponse, error) 
 		return nil, err
 	}
 
-	file, err := os.Open(srcFilePath)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = io.Copy(filePart, file)
+	_, err = io.Copy(filePart, reader)
 	if err != nil {
 		return nil, err
 	}
