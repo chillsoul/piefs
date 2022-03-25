@@ -3,8 +3,6 @@ package master
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -55,7 +53,7 @@ func (m *Master) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 		return
 	}
 
-	nid = util.UniqueId()
+	nid = m.snowflake.NextVal()
 	data, err := ioutil.ReadAll(file)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -68,18 +66,7 @@ func (m *Master) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 		go func(vs *master_pb.VolumeStatus) {
 			defer wg.Done()
 			//给该vid对应的所有volume上传文件
-			m.connLock.RLock()
-			if m.conn[vs.Url] == nil {
-				m.connLock.RUnlock()
-				m.connLock.Lock()
-				if m.conn[vs.Url] == nil { //double check
-					m.conn[vs.Url], err = grpc.Dial(vs.Url, grpc.WithTransportCredentials(insecure.NewCredentials()))
-					m.connLock.Unlock()
-				} else {
-					m.connLock.Unlock()
-				}
-			}
-			conn := m.conn[vs.Url]
+			conn := m.getSingletonConnection(vs.Url)
 			//conn, err := grpc.Dial(vs.Url, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			//defer conn.Close()
 			client := storage_pb.NewStorageClient(conn)
@@ -127,12 +114,11 @@ func (m *Master) DelNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 		go func(vs *master_pb.VolumeStatus) {
 			defer wg.Done()
 			//给该vid对应的所有volume删除文件
-			conn, err := grpc.Dial(vs.Url, grpc.WithTransportCredentials(insecure.NewCredentials()))
-			defer conn.Close()
+			conn := m.getSingletonConnection(vs.Url)
 			client := storage_pb.NewStorageClient(conn)
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
-			_, err = client.DeleteNeedleBlob(ctx, &storage_pb.DeleteNeedleBlobRequest{
+			_, err := client.DeleteNeedleBlob(ctx, &storage_pb.DeleteNeedleBlobRequest{
 				VolumeId: vs.Id,
 				NeedleId: nid,
 			})

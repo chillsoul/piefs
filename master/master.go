@@ -29,6 +29,7 @@ type Master struct {
 	statusLock          sync.RWMutex //volume and storage status statusLock
 	conn                map[string]*grpc.ClientConn
 	connLock            sync.RWMutex
+	snowflake           *util.Snowflake
 	master_pb.UnimplementedMasterServer
 }
 
@@ -45,7 +46,11 @@ func NewMaster(config *toml.Tree) (m *Master, err error) {
 		volumeStatusListMap: make(map[uint64][]*master_pb.VolumeStatus),
 		conn:                make(map[string]*grpc.ClientConn),
 	}
-	return m, err
+	m.snowflake, err = util.NewSnowflake(1)
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (m *Master) Start() {
@@ -162,7 +167,7 @@ func (m *Master) addVolume() (err error) {
 	//random select m.replica storages, which have the most free space
 	rand.Seed(time.Now().UnixNano())
 	p := rand.Perm(len(m.storageStatusList))
-	uuid := util.UniqueId()
+	uuid := m.snowflake.NextVal()
 	for i := 0; i < m.replica; i++ {
 		storageStatus := m.storageStatusList[p[i]]
 		conn, _ := grpc.Dial(storageStatus.Url, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -176,4 +181,22 @@ func (m *Master) addVolume() (err error) {
 		cancel()
 	}
 	return
+}
+func (m *Master) getSingletonConnection(url string) *grpc.ClientConn {
+	var err error
+	m.connLock.RLock()
+	if m.conn[url] == nil {
+		m.connLock.RUnlock()
+		m.connLock.Lock()
+		if m.conn[url] == nil { //double check
+			m.conn[url], err = grpc.Dial(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				return nil
+			}
+			m.connLock.Unlock()
+		} else {
+			m.connLock.Unlock()
+		}
+	}
+	return m.conn[url]
 }
