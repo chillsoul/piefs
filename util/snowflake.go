@@ -15,15 +15,15 @@ type Snowflake struct {
 }
 
 const (
-	epoch          = int64(1648173760000)              // 设置起始时间(时间戳/毫秒)：2021-03-25 10:02:40，有效期557年
-	timestampBits  = uint(44)                          // 时间戳占用位数 	// 数据中心id所占位数
-	workerIdBits   = uint(7)                           // 机器id所占位数
-	sequenceBits   = uint(12)                          // 序列所占的位数
-	timestampMax   = int64(-1 ^ (-1 << timestampBits)) // 时间戳最大值 	// 支持的最大数据中心id数量
-	workerIdMax    = int64(-1 ^ (-1 << workerIdBits))  // 支持的最大机器id数量
-	sequenceMask   = int64(-1 ^ (-1 << sequenceBits))  // 支持的最大序列id数量
-	workerIdShift  = sequenceBits                      // 机器id左移位数
-	timestampShift = sequenceBits + workerIdBits       // 时间戳左移位数
+	epoch          = int64(1648173760000)              // start: 2021-03-25 10:02:40, expire: 2300-12-20 01:13:02
+	timestampBits  = uint(43)                          // timestamp bits
+	workerIdBits   = uint(7)                           // worker bits
+	sequenceBits   = uint(13)                          // sequence bits
+	timestampMax   = int64(-1 ^ (-1 << timestampBits)) // max timestamp value
+	workerIdMax    = int64(-1 ^ (-1 << workerIdBits))  // max worker num
+	sequenceMask   = int64(-1 ^ (-1 << sequenceBits))  // max sequence value
+	workerIdShift  = sequenceBits                      // workId lsh bits
+	timestampShift = sequenceBits + workerIdBits       // timestamp lsh bits
 )
 
 func NewSnowflake(workId int64) (*Snowflake, error) {
@@ -35,17 +35,20 @@ func NewSnowflake(workId int64) (*Snowflake, error) {
 func (s *Snowflake) NextVal() uint64 {
 	s.Lock()
 	defer s.Unlock()
-	now := time.Now().UnixMilli() // 转毫秒
+	now := time.Now().UnixMilli() // millisecond
+	for s.timestamp > now {
+		//clock callback
+		time.Sleep(time.Millisecond)
+	}
 	if s.timestamp == now {
-		// 当同一时间戳（精度：毫秒）下多次生成id会增加序列号
+		// concurrent id generation
 		s.sequence = (s.sequence + 1) & sequenceMask
 		if s.sequence == 0 {
-			// 如果当前序列超出12bit长度，则需要等待下一毫秒
-			// 下一毫秒将使用sequence:0
-			time.Sleep(time.Microsecond)
+			// now time's sequence is ran out
+			time.Sleep(time.Millisecond)
 		}
 	} else {
-		// 不同时间戳（精度：毫秒）下直接使用序列号：0
+		// new timestamp now
 		s.sequence = 0
 	}
 	t := now - epoch
