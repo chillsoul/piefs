@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"path/filepath"
 	"piefs/util"
 	"sync"
@@ -50,7 +51,7 @@ func Benchmark(masterHost string, masterPort int, concurrent int, num int, size 
 	testFile, _ := ioutil.TempFile("./_tmp_", "")
 	testFile.Truncate(int64(size))
 	io.Copy(testFile, bytes.NewReader(randBytes))
-
+	defer os.Remove(testFile.Name())
 	for i := 0; i < concurrent; i++ {
 		wg.Add(1)
 		go func(j int) {
