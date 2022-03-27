@@ -39,6 +39,7 @@ func (s *Snowflake) NextVal() uint64 {
 	for s.timestamp > now {
 		//clock callback
 		time.Sleep(time.Millisecond)
+		now = time.Now().UnixMilli()
 	}
 	if s.timestamp == now {
 		// concurrent id generation
