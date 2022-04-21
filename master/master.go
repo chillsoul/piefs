@@ -55,13 +55,10 @@ func NewMaster(config *toml.Tree) (m *Master, err error) {
 
 func (m *Master) Start() {
 	go m.checkStorageStatus()
-	grpcServer := grpc.NewServer()
 	mux := http.NewServeMux()
+	grpcServer := grpc.NewServer()
 	gwmux := runtime.NewServeMux()
-	master_pb.RegisterMasterServer(grpcServer, m)
-	gwmux.HandlePath("GET", "/GetNeedle", m.GetNeedle)
-	gwmux.HandlePath("POST", "/PutNeedle", m.PutNeedle)
-	gwmux.HandlePath("POST", "/DelNeedle", m.DelNeedle)
+	m.InitRouter(grpcServer, gwmux)
 	mux.Handle("/", gwmux)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", m.masterPort), util.GRPCHandlerFunc(grpcServer, mux))
 	if err != nil {

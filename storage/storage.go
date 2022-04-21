@@ -77,14 +77,14 @@ func (s *Storage) Start() {
 	grpcServer := grpc.NewServer()
 	mux := http.NewServeMux()
 	gwmux := runtime.NewServeMux()
-	storage_pb.RegisterStorageServer(grpcServer, s)
-	gwmux.HandlePath("GET", "/GetNeedle", s.GetNeedle)
+	s.InitRouter(grpcServer, gwmux)
 	mux.Handle("/", gwmux)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", s.storePort), util.GRPCHandlerFunc(grpcServer, mux))
 	if err != nil {
 		panic(err)
 	}
 }
+
 func (s *Storage) heartbeat() {
 	c := master_pb.NewMasterClient(s.conn)
 	tick := time.NewTicker(HeartBeatInterval)
@@ -92,10 +92,10 @@ func (s *Storage) heartbeat() {
 	for {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		ss := &master_pb.StorageStatus{
-			Url:          fmt.Sprintf("%s:%d", s.storeHost, s.storePort),
-			LastBeatTime: timestamppb.Now(),
-
+			Url:              fmt.Sprintf("%s:%d", s.storeHost, s.storePort),
+			LastBeatTime:     timestamppb.Now(),
 			VolumeStatusList: make([]*master_pb.VolumeStatus, 0, len(s.directory.GetVolumeMap())),
+			Disk:             util.DiskUsage(),
 		}
 		for id, v := range s.directory.GetVolumeMap() {
 			ss.VolumeStatusList = append(ss.VolumeStatusList, &master_pb.VolumeStatus{
