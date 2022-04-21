@@ -1,22 +1,41 @@
 syntax="proto3";
-option go_package="/protobuf/master_pb";
-package master_pb;
+option go_package="protobuf/master_pb";
+package master;
 import "google/protobuf/timestamp.proto";
-
+import "google/api/annotations.proto";
 service Master{
   rpc Heartbeat(StorageStatus) returns(HeartbeatResponse){}
+  rpc GetStorageStatus(GetStorageStatusRequest) returns(GetStorageStatusResponse){
+    option (google.api.http) = {
+      get: "/StorageStatus"
+    };
+  }
 }
 message StorageStatus{
   string url=1;
   repeated VolumeStatus volume_status_list=2;
   google.protobuf.Timestamp last_beat_time=3;
+  Disk disk=4;
 }
-
+message GetStorageStatusResponse{
+  uint64 code=1;
+  repeated StorageStatus data=2;
+}
 message HeartbeatResponse{
 
 }
+
 message VolumeStatus{
   string url=1;
   uint64 id=2;
   uint64 current_size=3;
+}
+
+message Disk{
+  uint64 size=1;
+  uint64 used=2;
+  uint64 free=3;
+}
+message GetStorageStatusRequest{
+
 }

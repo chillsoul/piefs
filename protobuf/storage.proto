@@ -1,6 +1,6 @@
 syntax="proto3";
-option go_package="/protobuf/storage_pb";
-package storage_pb;
+option go_package="protobuf/storage_pb";
+package storage;
 service Storage{
   rpc CreateVolume(CreatVolumeRequest) returns(CreatVolumeResponse){}
   rpc WriteNeedleBlob(WriteNeedleBlobRequest) returns(WriteNeedleBlobResponse){}

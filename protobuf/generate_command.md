@@ -1,4 +1,5 @@
-### Generate Protobuf and Go files Commands
-protoc --go_out=. --go_grpc_out=. --grpc_gateway_out=.  protobuf/master.proto
+## Generate Protobuf and Go files Commands
 
-protoc --go_out=. --go_grpc_out=. --grpc_gateway_out=.  protobuf/storage.proto
+Install [buf](https://docs.buf.build/installation) first, and then
+
+`buf generate`
