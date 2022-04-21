@@ -13,6 +13,7 @@ Just like 'Finding a needle in Haystack', which is facebook's photo storage, a p
 ### Features
 - Master
     - HTTP API
+      - [x] Storage Status
       - [x] Put Needle
       - [x] Get Needle
     - gRPC Service
