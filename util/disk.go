@@ -7,9 +7,9 @@ import (
 	"piefs/protobuf/master_pb"
 )
 
-func DiskUsage(path string) (disk *master_pb.Disk) {
+func DiskUsage() (disk *master_pb.Disk) {
 	fs := new(unix.Statfs_t)
-	err = unix.Statfs(path, fs)
+	err := unix.Statfs("./", fs)
 	if err != nil {
 		return
 	}
