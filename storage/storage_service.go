@@ -40,7 +40,7 @@ func (s *Storage) WriteNeedleBlob(ctx context.Context, request *storage_pb.Write
 	if err != nil {
 		return emptyWriteNeedleBlobResponse, status.Error(codes.Internal, err.Error())
 	}
-	log.Printf("%s:%d saved nid %d of vid %d", s.storeHost, s.storePort, request.NeedleId, request.VolumeId)
+	//log.Printf("%s:%d saved nid %d of vid %d", s.storeHost, s.storePort, request.NeedleId, request.VolumeId)
 	s.cache.SetNeedleMetadata(request.VolumeId, request.NeedleId, metadata)
 	return emptyWriteNeedleBlobResponse, nil
 }
@@ -53,6 +53,6 @@ func (s *Storage) DeleteNeedleBlob(ctx context.Context, request *storage_pb.Dele
 		return emptyDeleteNeedleBlobResponse, status.Errorf(codes.Internal, err.Error())
 	}
 	s.cache.DelNeedleMetadata(request.VolumeId, request.NeedleId)
-	log.Printf("%s:%d deleted nid %d of vid %d", s.storeHost, s.storePort, request.NeedleId, request.VolumeId)
+	//log.Printf("%s:%d deleted nid %d of vid %d", s.storeHost, s.storePort, request.NeedleId, request.VolumeId)
 	return emptyDeleteNeedleBlobResponse, nil
 }
