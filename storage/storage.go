@@ -14,6 +14,7 @@ import (
 	"piefs/protobuf/storage_pb"
 	"piefs/storage/cache"
 	"piefs/storage/directory"
+	"piefs/storage/needle"
 	"piefs/util"
 	"time"
 )
@@ -42,20 +43,25 @@ func NewStorage(config *toml.Tree) (s *Storage, err error) {
 	}
 	s.cache, err = cache.NewNeedleCache(config, cache.GetterFunc(
 		func(vid, nid uint64) ([]byte, error) {
-			needle, err := s.directory.Get(vid, nid)
+			n, err := s.directory.Get(vid, nid)
 			if err != nil {
 				log.Printf("%s:%d get nid %d of vid %d failed, %s", s.storeHost, s.storePort, nid, vid, err)
 				return nil, err
 			}
-			needle.File = s.directory.GetVolumeMap()[vid].File
-			data := make([]byte, needle.Size)
-			_, err = needle.Read(data)
+			metadata, err := needle.Marshal(n)
 			if err != nil {
-				log.Printf("%s:%d get nid %d of vid %d failed, %s", s.storeHost, s.storePort, nid, vid, err)
+				log.Printf("%s:%d marshal nid %d of vid %d failed, %s", s.storeHost, s.storePort, nid, vid, err)
 				return nil, err
 			}
-			log.Printf("%s:%d loaded nid %d of vid %d from disk", s.storeHost, s.storePort, nid, vid)
-			return data, nil
+			//needle.File = s.directory.GetVolumeMap()[vid].File
+			//data := make([]byte, needle.Size)
+			//_, err = needle.Read(data)
+			//if err != nil {
+			//	log.Printf("%s:%d get nid %d of vid %d failed, %s", s.storeHost, s.storePort, nid, vid, err)
+			//	return nil, err
+			//}
+			//log.Printf("%s:%d loaded nid %d of vid %d from disk", s.storeHost, s.storePort, nid, vid)
+			return metadata, nil
 		}))
 	if err != nil {
 		return nil, err

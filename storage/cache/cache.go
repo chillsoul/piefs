@@ -45,7 +45,7 @@ func NeedleKey(vid, nid uint64) string {
 	return fmt.Sprintf("%s,%s", strconv.FormatUint(vid, 10), strconv.FormatUint(nid, 10))
 }
 
-func (nc *NeedleCache) GetNeedleData(vid, nid uint64) ([]byte, error) {
+func (nc *NeedleCache) GetNeedleMetadata(vid, nid uint64) ([]byte, error) {
 	key := NeedleKey(vid, nid)
 	var err error
 	if data, found := nc.c.Get(key); found {
@@ -60,16 +60,16 @@ func (nc *NeedleCache) GetNeedleData(vid, nid uint64) ([]byte, error) {
 }
 func (nc *NeedleCache) getFromDisk(vid, nid uint64) (interface{}, error) {
 	data, err := nc.getter.Get(vid, nid)
-	nc.SetNeedleData(vid, nid, data)
+	nc.SetNeedleMetadata(vid, nid, data)
 	return data, err
 }
-func (nc *NeedleCache) SetNeedleData(vid, nid uint64, data []byte) {
+func (nc *NeedleCache) SetNeedleMetadata(vid, nid uint64, data []byte) {
 	key := NeedleKey(vid, nid)
 	nc.c.Set(key, data, int64(len(data)))
 	return
 }
 
-func (nc *NeedleCache) DelNeedleData(vid, nid uint64) {
+func (nc *NeedleCache) DelNeedleMetadata(vid, nid uint64) {
 	key := NeedleKey(vid, nid)
 	nc.c.Del(key)
 }
