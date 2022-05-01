@@ -70,7 +70,7 @@ func (m *Master) PutNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 			//conn, err := grpc.Dial(vs.Url, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			//defer conn.Close()
 			client := storage_pb.NewStorageClient(conn)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
 			_, err = client.WriteNeedleBlob(ctx, &storage_pb.WriteNeedleBlobRequest{
 				VolumeId:   vs.Id,
