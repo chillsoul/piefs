@@ -6,7 +6,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"io/ioutil"
 	"path"
-	"piefs/storage/needle"
 	"piefs/storage/volume"
 	"piefs/util"
 	"strconv"
@@ -61,15 +60,10 @@ func (d *LeveldbDirectory) NewVolume(vid uint64) (err error) {
 	}
 	return nil
 }
-func (d *LeveldbDirectory) Get(vid, nid uint64) (n *needle.Needle, err error) {
+func (d *LeveldbDirectory) Get(vid, nid uint64) (metadata []byte, err error) {
 	key := make([]byte, 8)
 	binary.BigEndian.PutUint64(key, nid)
-	data, err := d.dbMap[vid].Get(key, nil)
-	if err != nil {
-		return nil, err
-	}
-	n, err = needle.Unmarshal(data)
-
+	metadata, err = d.dbMap[vid].Get(key, nil)
 	return
 }
 
@@ -80,14 +74,10 @@ func (d *LeveldbDirectory) Has(vid, nid uint64) (has bool) {
 	return err == nil
 }
 
-func (d *LeveldbDirectory) Set(vid, nid uint64, n *needle.Needle) (err error) {
+func (d *LeveldbDirectory) Set(vid, nid uint64, metadata []byte) (err error) {
 	key := make([]byte, 8)
 	binary.BigEndian.PutUint64(key, nid)
-	data, err := needle.Marshal(n)
-	if err != nil {
-		return err
-	}
-	return d.dbMap[vid].Put(key, data, nil)
+	return d.dbMap[vid].Put(key, metadata, nil)
 }
 
 func (d *LeveldbDirectory) Del(vid, nid uint64) (err error) {
