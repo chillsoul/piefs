@@ -25,6 +25,10 @@ func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request, _ map[string
 		return
 	}
 	n, err := needle.Unmarshal(metadata)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Marshal Needle of nid %d of volume vid %d error %v", nid, vid, err), http.StatusBadRequest)
+		return
+	}
 	n.File = s.directory.GetVolumeMap()[vid].File
 	//w.Header().Set("Content-Type", "image/*")
 	//w.Header().Set("Accept-Ranges", "bytes")

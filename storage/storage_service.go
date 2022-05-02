@@ -32,11 +32,12 @@ func (s *Storage) WriteNeedleBlob(ctx context.Context, request *storage_pb.Write
 	if err != nil {
 		return emptyWriteNeedleBlobResponse, status.Error(codes.Internal, err.Error())
 	}
-	err = s.directory.Set(request.VolumeId, request.NeedleId, n)
+
+	metadata, err := needle.Marshal(n)
 	if err != nil {
 		return emptyWriteNeedleBlobResponse, status.Error(codes.Internal, err.Error())
 	}
-	metadata, err := needle.Marshal(n)
+	err = s.directory.Set(request.VolumeId, request.NeedleId, metadata)
 	if err != nil {
 		return emptyWriteNeedleBlobResponse, status.Error(codes.Internal, err.Error())
 	}
