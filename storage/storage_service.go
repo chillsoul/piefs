@@ -6,7 +6,6 @@ import (
 	"google.golang.org/grpc/status"
 	"log"
 	"piefs/protobuf/storage_pb"
-	"piefs/storage/needle"
 )
 
 var (
@@ -28,15 +27,11 @@ func (s *Storage) WriteNeedleBlob(ctx context.Context, request *storage_pb.Write
 	if volume == nil {
 		return emptyWriteNeedleBlobResponse, status.Error(codes.NotFound, "volume not found")
 	}
-	n, err := volume.NewFile(request.NeedleId, request.NeedleData, request.FileExt)
+	_, metadata, err := volume.NewFile(request.NeedleId, request.NeedleData, request.FileExt)
 	if err != nil {
 		return emptyWriteNeedleBlobResponse, status.Error(codes.Internal, err.Error())
 	}
 
-	metadata, err := needle.Marshal(n)
-	if err != nil {
-		return emptyWriteNeedleBlobResponse, status.Error(codes.Internal, err.Error())
-	}
 	err = s.directory.Set(request.VolumeId, request.NeedleId, metadata)
 	if err != nil {
 		return emptyWriteNeedleBlobResponse, status.Error(codes.Internal, err.Error())

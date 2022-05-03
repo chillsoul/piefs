@@ -92,14 +92,14 @@ func (v *Volume) allocSpace(fileBodySize uint64, fileExtSize uint64) (offset uin
 // 1. alloc space
 // 2. set needle's header
 // 3. create meta info
-func (v *Volume) newNeedle(id uint64, fileSize uint64, fileExt string) (n *Needle, err error) {
+func (v *Volume) newNeedle(id uint64, fileSize uint64, fileExt string) (n *Needle, metadata []byte, err error) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
 	fileExtSize := uint64(len(fileExt))
 	offset, err := v.allocSpace(fileSize, fileExtSize)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	n = &Needle{
 		ID:         id,
@@ -114,29 +114,29 @@ func (v *Volume) newNeedle(id uint64, fileSize uint64, fileExt string) (n *Needl
 	// 然后把Needle的数据序列化
 	headerData, err := Marshal(n)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// 然后在volume对应的文件的偏移量中写入needle的Header
 	_, err = v.File.WriteAt(headerData, int64(n.Offset))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return n, err
+	return n, metadata, err
 }
-func (v *Volume) NewFile(id uint64, data []byte, fileExt string) (needle *Needle, err error) {
-	needle, err = v.newNeedle(id, uint64(len(data)), fileExt)
+func (v *Volume) NewFile(id uint64, data []byte, fileExt string) (needle *Needle, metadata []byte, err error) {
+	needle, metadata, err = v.newNeedle(id, uint64(len(data)), fileExt)
 
 	if err != nil {
-		return nil, fmt.Errorf("new needle : %v", err)
+		return nil, nil, fmt.Errorf("new needle : %v", err)
 	}
 	_, err = needle.Write(data)
 	if err != nil {
-		return nil, fmt.Errorf("needle write error %v", err)
+		return nil, nil, fmt.Errorf("needle write error %v", err)
 	}
 
-	return needle, nil
+	return needle, metadata, nil
 }
 func (v *Volume) GetVolumeSize() uint64 {
 	fi, err := v.File.Stat()
