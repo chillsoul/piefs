@@ -112,13 +112,13 @@ func (v *Volume) newNeedle(id uint64, fileSize uint64, fileExt string) (n *Needl
 	// 到这里初始化了一个新的 Needle
 
 	// 然后把Needle的数据序列化
-	headerData, err := Marshal(n)
+	metadata, err = Marshal(n)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// 然后在volume对应的文件的偏移量中写入needle的Header
-	_, err = v.File.WriteAt(headerData, int64(n.Offset))
+	_, err = v.File.WriteAt(metadata, int64(n.Offset))
 	if err != nil {
 		return nil, nil, err
 	}
