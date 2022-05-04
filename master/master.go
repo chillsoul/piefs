@@ -194,6 +194,8 @@ func (m *Master) getSingletonConnection(url string) *grpc.ClientConn {
 		} else {
 			m.connLock.Unlock()
 		}
+	} else {
+		m.connLock.RUnlock()
 	}
 	return m.conn[url]
 }
