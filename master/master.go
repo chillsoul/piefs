@@ -162,7 +162,6 @@ func (m *Master) addVolume() (err error) {
 		return errors.New("no enough storage to create replica")
 	}
 	//random select m.replica storages, which have the most free space
-	rand.Seed(time.Now().UnixNano())
 	p := rand.Perm(len(m.storageStatusList))
 	uuid := m.snowflake.NextVal()
 	for i := 0; i < m.replica; i++ {

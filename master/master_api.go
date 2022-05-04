@@ -24,7 +24,7 @@ func (m *Master) GetNeedle(w http.ResponseWriter, r *http.Request, _ map[string]
 	if ok, vid, nid = util.GetVidNidFromFormValue(w, r); !ok {
 		return
 	}
-	rand.Seed(time.Now().UnixNano())
+
 	vsList := m.volumeStatusListMap[vid]
 	if vsList == nil {
 		http.Error(w, "volume not found", http.StatusNotFound)
