@@ -1,19 +1,25 @@
 #***FOR MASTER and STORAGE***
-#Please fill master/store.host with public IP, domain
+#Please fill Master/Storage.host with public IP, domain
 #or 127.0.0.1 (only for local test)
-[master]
+[Master]
 host="127.0.0.1"
 port=8080
 #replicas number, there must be NOT LESS storage servers than replicas
+#and will be only used in Master server
 replica=1
-[store]
+[Storage]
 host="127.0.0.1"
 port=9090
 dir="_storage_9090"
-[cache]
+[Cache]
 #Number of keys to track frequency.
-num_counters=100000
+numCounters=100000
 #Maximum cost of cache.
-max_cost=1073741824 #1G
+maxCost=1073741824 #1G
 #Number of keys per Get buffer.
-buffer_items=128
+bufferItems=128
+[Redis]
+host="localhost"
+port=6379
+password=""
+database=0

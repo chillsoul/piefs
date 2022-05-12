@@ -9,8 +9,9 @@ import (
 	"github.com/chillsoul/piefs/storage"
 	"github.com/chillsoul/piefs/storage/volume"
 	"github.com/chillsoul/piefs/util"
+	"github.com/chillsoul/piefs/util/config"
+	"github.com/chillsoul/piefs/util/snowflake"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pelletier/go-toml"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -29,7 +30,7 @@ type Master struct {
 	statusLock          sync.RWMutex //volume and storage status statusLock
 	conn                map[string]*grpc.ClientConn
 	connLock            sync.RWMutex
-	snowflake           *util.Snowflake
+	snowflake           *snowflake.Snowflake
 	master_pb.UnimplementedMasterServer
 }
 
@@ -37,16 +38,16 @@ var (
 	errNoWritableVolumes = errors.New("no volume of enough space")
 )
 
-func NewMaster(config *toml.Tree) (m *Master, err error) {
+func NewMaster(masterConfig config.Master) (m *Master, err error) {
 	m = &Master{
-		masterHost:          config.Get("master.host").(string),
-		masterPort:          int(config.Get("master.port").(int64)),
-		replica:             int(config.Get("master.replica").(int64)),
+		masterHost:          masterConfig.Host,
+		masterPort:          masterConfig.Port,
+		replica:             masterConfig.Replica,
 		storageStatusList:   make([]*master_pb.StorageStatus, 0),
 		volumeStatusListMap: make(map[uint64][]*master_pb.VolumeStatus),
 		conn:                make(map[string]*grpc.ClientConn),
 	}
-	m.snowflake, err = util.NewSnowflake(1)
+	m.snowflake, err = snowflake.NewSnowflake(1)
 	if err != nil {
 		return nil, err
 	}

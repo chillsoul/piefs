@@ -8,8 +8,9 @@ import (
 	"github.com/chillsoul/piefs/storage/cache"
 	"github.com/chillsoul/piefs/storage/directory"
 	"github.com/chillsoul/piefs/util"
+	"github.com/chillsoul/piefs/util/config"
+	"github.com/chillsoul/piefs/util/diskusage"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pelletier/go-toml"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -32,15 +33,15 @@ type Storage struct {
 	conn  *grpc.ClientConn
 }
 
-func NewStorage(config *toml.Tree) (s *Storage, err error) {
+func NewStorage(masterConfig config.Master, storageConfig config.Storage, cacheConfig config.Cache) (s *Storage, err error) {
 	s = &Storage{
-		masterHost: config.Get("master.host").(string),
-		masterPort: int(config.Get("master.port").(int64)),
-		storeHost:  config.Get("store.host").(string),
-		storePort:  int(config.Get("store.port").(int64)),
-		storeDir:   config.Get("store.dir").(string),
+		masterHost: masterConfig.Host,
+		masterPort: masterConfig.Port,
+		storeHost:  storageConfig.Host,
+		storePort:  storageConfig.Port,
+		storeDir:   storageConfig.Dir,
 	}
-	s.cache, err = cache.NewNeedleCache(config, cache.GetterFunc(
+	s.cache, err = cache.NewNeedleCache(cacheConfig, cache.GetterFunc(
 		func(vid, nid uint64) ([]byte, error) {
 			metadata, err := s.directory.Get(vid, nid)
 			if err != nil {
@@ -95,7 +96,7 @@ func (s *Storage) heartbeat() {
 			Url:              fmt.Sprintf("%s:%d", s.storeHost, s.storePort),
 			LastBeatTime:     timestamppb.Now(),
 			VolumeStatusList: make([]*master_pb.VolumeStatus, 0, len(s.directory.GetVolumeMap())),
-			Disk:             util.DiskUsage(),
+			Disk:             diskusage.DiskUsage(),
 		}
 		for id, v := range s.directory.GetVolumeMap() {
 			ss.VolumeStatusList = append(ss.VolumeStatusList, &master_pb.VolumeStatus{

@@ -3,8 +3,8 @@ package cache
 import (
 	"fmt"
 	"github.com/chillsoul/piefs/storage/cache/singleflight"
+	"github.com/chillsoul/piefs/util/config"
 	"github.com/dgraph-io/ristretto"
-	"github.com/pelletier/go-toml"
 	"strconv"
 )
 
@@ -27,12 +27,12 @@ type NeedleCache struct {
 	loader *singleflight.Group
 }
 
-func NewNeedleCache(config *toml.Tree, getter Getter) (nc *NeedleCache, err error) {
+func NewNeedleCache(cache config.Cache, getter Getter) (nc *NeedleCache, err error) {
 	nc = new(NeedleCache)
 	nc.c, err = ristretto.NewCache(&ristretto.Config{
-		NumCounters: config.Get("cache.num_counters").(int64),
-		MaxCost:     config.Get("cache.max_cost").(int64),
-		BufferItems: config.Get("cache.buffer_items").(int64),
+		NumCounters: cache.NumCounters,
+		MaxCost:     cache.MaxCost,
+		BufferItems: cache.BufferItems,
 	})
 	nc.getter = getter
 	nc.loader = &singleflight.Group{}
