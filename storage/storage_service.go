@@ -2,10 +2,10 @@ package storage
 
 import (
 	"context"
+	"github.com/chillsoul/piefs/protobuf/storage_pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
-	"piefs/protobuf/storage_pb"
 )
 
 var (

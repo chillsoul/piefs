@@ -2,8 +2,8 @@ package master
 
 import (
 	"context"
+	"github.com/chillsoul/piefs/protobuf/master_pb"
 	"log"
-	"piefs/protobuf/master_pb"
 )
 
 func (m *Master) Heartbeat(ctx context.Context, ss *master_pb.StorageStatus) (*master_pb.HeartbeatResponse, error) {

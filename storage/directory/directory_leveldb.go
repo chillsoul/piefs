@@ -2,12 +2,12 @@ package directory
 
 import (
 	"encoding/binary"
+	"github.com/chillsoul/piefs/storage/volume"
+	"github.com/chillsoul/piefs/util"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"io/ioutil"
 	"path"
-	"piefs/storage/volume"
-	"piefs/util"
 	"strconv"
 	"strings"
 )

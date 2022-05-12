@@ -2,7 +2,7 @@ package master
 
 import (
 	"context"
-	"piefs/protobuf/master_pb"
+	"github.com/chillsoul/piefs/protobuf/master_pb"
 )
 
 func (m *Master) GetStorageStatus(ctx context.Context, ss *master_pb.GetStorageStatusRequest) (*master_pb.GetStorageStatusResponse, error) {

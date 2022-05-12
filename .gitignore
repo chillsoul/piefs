@@ -2,3 +2,4 @@
 **/_tmp_*
 **/_storage_*
 /build
+buf.lock

@@ -1,7 +1,7 @@
 package directory
 
 import (
-	"piefs/storage/volume"
+	"github.com/chillsoul/piefs/storage/volume"
 )
 
 type Directory interface {

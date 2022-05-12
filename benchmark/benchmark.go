@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/chillsoul/piefs/util"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -13,7 +14,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"piefs/util"
 	"sync"
 	"time"
 )

@@ -2,20 +2,20 @@ package main
 
 import (
 	"fmt"
+	"github.com/chillsoul/piefs/master"
+	"github.com/chillsoul/piefs/storage"
 	"github.com/pelletier/go-toml"
-	"piefs/master"
-	"piefs/storage"
 )
 
 func main() {
 	config1, err := toml.LoadFile("./config1.toml")
-	config2, err := toml.LoadFile("./config2.toml")
+	//config2, err := toml.LoadFile("./config2.toml")
 	s1, err := storage.NewStorage(config1)
 	if err != nil {
 		fmt.Println("error new storage:", err)
 		return
 	}
-	s2, err := storage.NewStorage(config2)
+	//s2, err := storage.NewStorage(config2)
 	if err != nil {
 		fmt.Println("error new storage:", err)
 		return
@@ -27,6 +27,6 @@ func main() {
 	}
 	go m.Start()
 	go s1.Start()
-	go s2.Start()
+	//go s2.Start()
 	select {}
 }

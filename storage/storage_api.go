@@ -2,10 +2,10 @@ package storage
 
 import (
 	"fmt"
+	"github.com/chillsoul/piefs/storage/needle"
+	"github.com/chillsoul/piefs/util"
 	"io"
 	"net/http"
-	"piefs/storage/needle"
-	"piefs/util"
 )
 
 func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request, _ map[string]string) {

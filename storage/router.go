@@ -1,9 +1,9 @@
 package storage
 
 import (
+	"github.com/chillsoul/piefs/protobuf/storage_pb"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
-	"piefs/protobuf/storage_pb"
 )
 
 func (s *Storage) InitRouter(grpcServer *grpc.Server, gwmux *runtime.ServeMux) {

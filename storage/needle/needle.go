@@ -46,11 +46,11 @@ func Unmarshal(b []byte) (n *Needle, err error) {
 		return nil, ErrWrongLen
 	}
 	n = new(Needle)
-	n.ID = binary.BigEndian.Uint64(b[0:8])
+	//n.ID = binary.BigEndian.Uint64(b[0:8])
 	n.Size = binary.BigEndian.Uint64(b[8:16])
 	n.Offset = binary.BigEndian.Uint64(b[16:24])
-	n.UploadTime = time.Unix(int64(binary.BigEndian.Uint64(b[24:32])), 0)
-	n.FileExt = string(b[32:])
+	//n.UploadTime = time.Unix(int64(binary.BigEndian.Uint64(b[24:32])), 0)
+	//n.FileExt = string(b[32:])
 	return
 }
 func HeaderSize(extSize uint64) (size uint64) {

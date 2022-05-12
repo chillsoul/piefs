@@ -2,9 +2,9 @@ package master
 
 import (
 	"context"
+	"github.com/chillsoul/piefs/protobuf/master_pb"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
-	"piefs/protobuf/master_pb"
 )
 
 func (m *Master) InitRouter(grpcServer *grpc.Server, gwmux *runtime.ServeMux) {

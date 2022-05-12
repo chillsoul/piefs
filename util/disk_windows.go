@@ -3,8 +3,8 @@
 package util
 
 import (
+	"github.com/chillsoul/piefs/protobuf/master_pb"
 	"golang.org/x/sys/windows"
-	"piefs/protobuf/master_pb"
 	"unsafe"
 )
 

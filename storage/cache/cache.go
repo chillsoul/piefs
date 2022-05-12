@@ -2,9 +2,9 @@ package cache
 
 import (
 	"fmt"
+	"github.com/chillsoul/piefs/storage/cache/singleflight"
 	"github.com/dgraph-io/ristretto"
 	"github.com/pelletier/go-toml"
-	"piefs/storage/cache/singleflight"
 	"strconv"
 )
 

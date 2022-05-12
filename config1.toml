@@ -5,7 +5,7 @@
 host="127.0.0.1"
 port=8080
 #replicas number, there must be NOT LESS storage servers than replicas
-replica=2
+replica=1
 [store]
 host="127.0.0.1"
 port=9090
@@ -16,4 +16,4 @@ num_counters=100000
 #Maximum cost of cache.
 max_cost=1073741824 #1G
 #Number of keys per Get buffer.
-buffer_items=64
+buffer_items=128

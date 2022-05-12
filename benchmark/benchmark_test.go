@@ -5,5 +5,5 @@ import (
 )
 
 func TestBenchmark(t *testing.T) {
-	Benchmark("localhost", 8080, 12, 1000, 1024*100)
+	Benchmark("localhost", 8080, 12, 1000, 1024*64)
 }
