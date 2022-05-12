@@ -1,6 +1,6 @@
 //go:build !windows
 
-package util
+package diskusage
 
 import (
 	"github.com/chillsoul/piefs/protobuf/master_pb"

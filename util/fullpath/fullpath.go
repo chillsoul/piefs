@@ -1,7 +1,7 @@
 // From https://github.com/chrislusf/seaweedfs/blob/e41b11b0045376700d4ab047a54a2758a69552ea/weed/util/fullpath.go
 // Copyright chrislusf
 
-package util
+package fullpath
 
 import (
 	"path/filepath"
