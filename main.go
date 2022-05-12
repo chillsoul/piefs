@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"github.com/chillsoul/piefs/master"
 	"github.com/chillsoul/piefs/storage"
-	"github.com/pelletier/go-toml"
+	"github.com/chillsoul/piefs/util/config"
 )
 
 func main() {
-	config1, err := toml.LoadFile("./config1.toml")
-	//config2, err := toml.LoadFile("./config2.toml")
-	s1, err := storage.NewStorage(config1)
+	config1, err := config.LoadConfig("./config1.toml")
+	s1, err := storage.NewStorage(config1.Master, config1.Storage, config1.Cache)
 	if err != nil {
 		fmt.Println("error new storage:", err)
 		return
@@ -20,7 +19,7 @@ func main() {
 		fmt.Println("error new storage:", err)
 		return
 	}
-	m, err := master.NewMaster(config1)
+	m, err := master.NewMaster(config1.Master)
 	if err != nil {
 		fmt.Println("error new master:", err)
 		return
