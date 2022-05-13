@@ -5,7 +5,9 @@ import (
 	"github.com/chillsoul/piefs/storage/needle"
 	"github.com/chillsoul/piefs/util"
 	"io"
+	"mime"
 	"net/http"
+	"strconv"
 )
 
 func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request, _ map[string]string) {
@@ -30,10 +32,10 @@ func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request, _ map[string
 		return
 	}
 	n.File = s.directory.GetVolumeMap()[vid].File
-	//w.Header().Set("Content-Type", "image/*")
-	//w.Header().Set("Accept-Ranges", "bytes")
-	//w.Header().Set("ETag", fmt.Sprintf("%d", nid))
-	//w.Header().Set("Content-Length", strconv.FormatInt(int64(len(data)), 10))
+	w.Header().Set("Content-Type", getContentType(n.FileExt))
+	w.Header().Set("Accept-Ranges", "bytes")
+	w.Header().Set("ETag", fmt.Sprintf("%d", nid))
+	w.Header().Set("Content-Length", strconv.FormatInt(int64(n.Size), 10))
 	_, err = io.CopyN(w, n, int64(n.Size))
 	//w.Write(data)
 	if err != nil {
@@ -42,12 +44,12 @@ func (s *Storage) GetNeedle(w http.ResponseWriter, r *http.Request, _ map[string
 	}
 }
 
-//func getContentType(fileExt string) string {
-//	contentType := "application/octet-stream"
-//	if fileExt != "" && fileExt != "." {
-//		if tmp := mime.TypeByExtension(fileExt); tmp != "" {
-//			contentType = tmp
-//		}
-//	}
-//	return contentType
-//}
+func getContentType(fileExt string) string {
+	contentType := "application/octet-stream"
+	if fileExt != "" && fileExt != "." {
+		if tmp := mime.TypeByExtension(fileExt); tmp != "" {
+			contentType = tmp
+		}
+	}
+	return contentType
+}
